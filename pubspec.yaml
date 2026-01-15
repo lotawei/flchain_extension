@@ -1,0 +1,19 @@
+name: flchain_extension
+description: Flutter 链式调用扩展库，提供简洁优雅的 Widget 修饰器和动画效果。
+version: 0.0.1
+homepage: https://github.com/lotawei/flchain_extension
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
