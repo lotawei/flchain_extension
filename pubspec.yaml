@@ -1,6 +1,6 @@
 name: flchain_extension
 description: Flutter chainable widget extension library. Provides elegant widget modifiers, text styling, animations and more.
-version: 0.0.1
+version: 0.0.3
 homepage: https://github.com/lotawei/flchain_extension
 repository: https://github.com/lotawei/flchain_extension
 issue_tracker: https://github.com/lotawei/flchain_extension/issues

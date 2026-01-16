@@ -1811,9 +1811,21 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
   @override
   void initState() {
     super.initState();
+    // 如果是 onTap 触发，初始值应该是 1.0（让按钮初始可见/正常状态）
+    final initialValue = (widget.anim.trigger == AnimTrigger.onTap &&
+            (widget.anim.type == AnimType.scale ||
+                widget.anim.type == AnimType.bounce ||
+                widget.anim.type == AnimType.fadeIn ||
+                widget.anim.type == AnimType.slide ||
+                widget.anim.type == AnimType.rotate ||
+                widget.anim.type == AnimType.pulse ||
+                widget.anim.type == AnimType.fadeSlide))
+        ? 1.0
+        : 0.0;
     _controller = AnimationController(
       duration: widget.anim.duration,
       vsync: this,
+      value: initialValue, // 设置初始值
     );
     if (widget.anim.trigger == AnimTrigger.auto) {
       Future.delayed(widget.anim.delay, () {
@@ -1838,12 +1850,35 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
     if (widget.anim.repeat) {
       if (_controller.isAnimating) {
         _controller.stop();
-        _controller.value = 0;
+        // 如果是 scale 且 scaleBegin 是 1.0，初始值应该是 1.0
+        _controller.value = (widget.anim.type == AnimType.scale &&
+                widget.anim.scaleBegin == 1.0 &&
+                widget.anim.trigger == AnimTrigger.onTap)
+            ? 1.0
+            : 0;
       } else {
         _controller.repeat(reverse: true);
       }
     } else {
-      _controller.forward(from: 0);
+      // 如果是 onTap 触发，从 0 播放到 1.0（在 _buildAnimatedChild 中会映射为正常状态 -> 动画效果 -> 正常状态）
+      if (widget.anim.trigger == AnimTrigger.onTap &&
+          (widget.anim.type == AnimType.scale ||
+              widget.anim.type == AnimType.bounce ||
+              widget.anim.type == AnimType.fadeIn ||
+              widget.anim.type == AnimType.slide ||
+              widget.anim.type == AnimType.rotate ||
+              widget.anim.type == AnimType.pulse ||
+              widget.anim.type == AnimType.fadeSlide)) {
+        // 重置到 0，然后播放到 1.0
+        _controller.reset();
+        _controller.forward().then((_) {
+          if (mounted) {
+            _controller.value = 1.0; // 动画结束后保持为 1.0（正常状态）
+          }
+        });
+      } else {
+        _controller.forward(from: 0);
+      }
     }
   }
 
@@ -1852,10 +1887,15 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
     Widget animatedChild = _buildAnimatedChild();
 
     if (widget.anim.trigger == AnimTrigger.onTap) {
-      return GestureDetector(onTap: _playAnimation, child: animatedChild);
-    } else if (widget.anim.trigger == AnimTrigger.onLongPress) {
-      return GestureDetector(onLongPress: _playAnimation, child: animatedChild);
+      // 使用 GestureDetector 的 onTapDown 来触发动画
+      // onTapDown 不会阻止 onTap 事件传递到子组件，所以原有的 .onTap() 回调可以正常工作
+      return GestureDetector(
+        onTapDown: (_) => _playAnimation(),
+        behavior: HitTestBehavior.translucent, // 让事件传递到子组件
+        child: animatedChild,
+      );
     }
+    // 移除 onLongPress 支持，简化实现
     return animatedChild;
   }
 
@@ -1865,6 +1905,23 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
 
     switch (anim.type) {
       case AnimType.fadeIn:
+        // 如果是 onTap 触发，初始应该是可见的（opacity=1.0）
+        if (anim.trigger == AnimTrigger.onTap) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              // 初始状态（value=0）或动画结束（value=1.0）时，opacity=1.0
+              // 动画过程中（value 0->1），opacity 从 1.0 到 1.0（不变，或者可以稍微闪烁）
+              // 为了有反馈效果，可以让它稍微变暗再恢复
+              final opacity = _controller.value <= 0.5
+                  ? 1.0 - (_controller.value * 2) * 0.2 // 前半段：1.0 -> 0.8
+                  : 0.8 +
+                      ((_controller.value - 0.5) * 2) * 0.2; // 后半段：0.8 -> 1.0
+              return Opacity(opacity: opacity, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
         return FadeTransition(opacity: curve, child: widget.child);
 
       case AnimType.fadeOut:
@@ -1872,6 +1929,29 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return FadeTransition(opacity: fadeOut, child: widget.child);
 
       case AnimType.scale:
+        // 如果 scaleBegin 是 1.0 且是 onTap 触发，则点击时从 1.0 缩放到 0.9 再回到 1.0
+        if (anim.scaleBegin == 1.0 && anim.trigger == AnimTrigger.onTap) {
+          // 使用 AnimatedBuilder 来处理初始值和动画
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              double scaleValue;
+              // 当 value 为 1.0 或接近 1.0 时（初始状态或动画结束），scale = 1.0
+              if (_controller.value >= 0.99) {
+                scaleValue = 1.0;
+              } else if (_controller.value <= 0.5) {
+                // 前半段（0 到 0.5）：从 1.0 缩放到 0.9
+                scaleValue = 1.0 - (_controller.value * 2) * 0.1;
+              } else {
+                // 后半段（0.5 到 1.0）：从 0.9 回到 1.0
+                scaleValue = 0.9 + ((_controller.value - 0.5) * 2) * 0.1;
+              }
+              return Transform.scale(scale: scaleValue, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
+        // 默认行为：从 scaleBegin 缩放到 1.0
         final scale = Tween<double>(
           begin: anim.scaleBegin ?? 0.0,
           end: 1.0,
@@ -1879,6 +1959,29 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return ScaleTransition(scale: scale, child: widget.child);
 
       case AnimType.bounce:
+        // 如果是 onTap 触发，初始应该是正常大小（scale=1.0）
+        if (anim.trigger == AnimTrigger.onTap) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              double scaleValue;
+              if (_controller.value >= 0.99) {
+                scaleValue = 1.0; // 初始或结束状态
+              } else {
+                // 弹跳效果：从 1.0 到 0.9 再回到 1.0
+                if (_controller.value <= 0.5) {
+                  scaleValue =
+                      1.0 - (_controller.value * 2) * 0.1; // 1.0 -> 0.9
+                } else {
+                  scaleValue =
+                      0.9 + ((_controller.value - 0.5) * 2) * 0.1; // 0.9 -> 1.0
+                }
+              }
+              return Transform.scale(scale: scaleValue, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
         final bounce = Tween<double>(
           begin: anim.scaleBegin ?? 0.3,
           end: 1.0,
@@ -1886,6 +1989,31 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return ScaleTransition(scale: bounce, child: widget.child);
 
       case AnimType.slide:
+        // 如果是 onTap 触发，初始应该在正常位置（Offset.zero）
+        if (anim.trigger == AnimTrigger.onTap) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final beginOffset = anim.slideOffset ?? const Offset(0, 1);
+              Offset offset;
+              if (_controller.value >= 0.99) {
+                offset = Offset.zero; // 初始或结束状态
+              } else {
+                // 滑动效果：从正常位置偏移一点再回来
+                final progress = _controller.value;
+                if (progress <= 0.5) {
+                  // 前半段：从 zero 到 beginOffset 的一部分
+                  offset = Offset.zero + (beginOffset * progress * 2 * 0.3);
+                } else {
+                  // 后半段：从偏移回到 zero
+                  offset = beginOffset * 0.3 * (1 - (progress - 0.5) * 2);
+                }
+              }
+              return Transform.translate(offset: offset, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
         final slide = Tween<Offset>(
           begin: anim.slideOffset ?? const Offset(0, 1),
           end: Offset.zero,
@@ -1893,6 +2021,31 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return SlideTransition(position: slide, child: widget.child);
 
       case AnimType.rotate:
+        // 如果是 onTap 触发，初始应该是不旋转（turns=0.0）
+        if (anim.trigger == AnimTrigger.onTap) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              double turns;
+              if (_controller.value >= 0.99) {
+                turns = 0.0; // 初始或结束状态
+              } else {
+                // 旋转效果：从 0 转一圈再回到 0
+                final totalTurns = anim.turns ?? 1.0;
+                if (_controller.value <= 0.5) {
+                  // 前半段：从 0 转到 totalTurns（转一圈）
+                  turns = (_controller.value * 2) * totalTurns;
+                } else {
+                  // 后半段：从 totalTurns 回到 0
+                  turns = totalTurns * (1 - (_controller.value - 0.5) * 2);
+                }
+              }
+              return Transform.rotate(
+                  angle: turns * 2 * math.pi, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
         final rotate = Tween<double>(
           begin: anim.turns ?? 1,
           end: 0.0,
@@ -1916,6 +2069,29 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         );
 
       case AnimType.pulse:
+        // 如果是 onTap 触发且不重复，初始应该是正常大小（scale=1.0）
+        if (anim.trigger == AnimTrigger.onTap && !anim.repeat) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              double scaleValue;
+              if (_controller.value >= 0.99) {
+                scaleValue = 1.0; // 初始或结束状态
+              } else {
+                // 脉冲效果：从 1.0 到 1.05 再回到 1.0
+                if (_controller.value <= 0.5) {
+                  scaleValue =
+                      1.0 + (_controller.value * 2) * 0.05; // 1.0 -> 1.05
+                } else {
+                  scaleValue = 1.05 -
+                      ((_controller.value - 0.5) * 2) * 0.05; // 1.05 -> 1.0
+                }
+              }
+              return Transform.scale(scale: scaleValue, child: widget.child);
+            },
+            child: widget.child,
+          );
+        }
         final pulse = Tween<double>(begin: 0.95, end: 1.05).animate(curve);
         return ScaleTransition(scale: pulse, child: widget.child);
 
@@ -1924,6 +2100,40 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return FadeTransition(opacity: blink, child: widget.child);
 
       case AnimType.fadeSlide:
+        // 如果是 onTap 触发，初始应该是可见且在正常位置
+        if (anim.trigger == AnimTrigger.onTap) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final beginOffset = anim.slideOffset ?? const Offset(0, 0.2);
+              double opacity;
+              Offset offset;
+              if (_controller.value >= 0.99) {
+                opacity = 1.0;
+                offset = Offset.zero;
+              } else {
+                // 淡入+滑入效果：从可见+正常位置，变暗+偏移，再恢复
+                if (_controller.value <= 0.5) {
+                  // 前半段：从 1.0 变暗到 0.5，从 zero 偏移到完整 offset
+                  opacity = 1.0 - (_controller.value * 2) * 0.5; // 1.0 -> 0.5
+                  offset =
+                      beginOffset * (_controller.value * 2); // zero -> offset
+                } else {
+                  // 后半段：从 0.5 恢复到 1.0，从 offset 回到 zero
+                  opacity =
+                      0.5 + ((_controller.value - 0.5) * 2) * 0.5; // 0.5 -> 1.0
+                  offset = beginOffset *
+                      (1 - (_controller.value - 0.5) * 2); // offset -> zero
+                }
+              }
+              return Opacity(
+                opacity: opacity,
+                child: Transform.translate(offset: offset, child: widget.child),
+              );
+            },
+            child: widget.child,
+          );
+        }
         final fade = CurvedAnimation(parent: _controller, curve: anim.curve);
         final slide = Tween<Offset>(
           begin: anim.slideOffset ?? const Offset(0, 0.2),
@@ -2100,5 +2310,286 @@ class _TapBounceWidgetState extends State<_TapBounceWidget>
   Widget build(BuildContext context) => GestureDetector(
         onTap: _onTap,
         child: ScaleTransition(scale: _animation, child: widget.child),
+      );
+}
+
+// ==================== IconTextButton 组件 ====================
+
+/// IconTextButton 配置类，用于链式调用
+class IconTextButtonConfig {
+  final Icon icon;
+  final Text text;
+  final VoidCallback? onPressed;
+  final Axis direction;
+  final EdgeInsetsGeometry? padding;
+  final double spacing;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final double? borderRadius;
+  final double? elevation;
+  final BorderSide? border;
+  final MainAxisAlignment mainAxisAlignment;
+  final CrossAxisAlignment crossAxisAlignment;
+
+  const IconTextButtonConfig({
+    required this.icon,
+    required this.text,
+    this.onPressed,
+    this.direction = Axis.horizontal,
+    this.padding,
+    this.spacing = 8.0,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderRadius,
+    this.elevation,
+    this.border,
+    this.mainAxisAlignment = MainAxisAlignment.center,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+  });
+
+  IconTextButtonConfig copyWith({
+    Icon? icon,
+    Text? text,
+    VoidCallback? onPressed,
+    Axis? direction,
+    EdgeInsetsGeometry? padding,
+    double? spacing,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? borderRadius,
+    double? elevation,
+    BorderSide? border,
+    MainAxisAlignment? mainAxisAlignment,
+    CrossAxisAlignment? crossAxisAlignment,
+  }) =>
+      IconTextButtonConfig(
+        icon: icon ?? this.icon,
+        text: text ?? this.text,
+        onPressed: onPressed ?? this.onPressed,
+        direction: direction ?? this.direction,
+        padding: padding ?? this.padding,
+        spacing: spacing ?? this.spacing,
+        backgroundColor: backgroundColor ?? this.backgroundColor,
+        foregroundColor: foregroundColor ?? this.foregroundColor,
+        borderRadius: borderRadius ?? this.borderRadius,
+        elevation: elevation ?? this.elevation,
+        border: border ?? this.border,
+        mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,
+        crossAxisAlignment: crossAxisAlignment ?? this.crossAxisAlignment,
+      );
+}
+
+/// IconTextButton Widget - 支持水平和垂直布局的图标+文字按钮
+class IconTextButton extends StatelessWidget {
+  final IconTextButtonConfig config;
+
+  const IconTextButton({super.key, required this.config});
+
+  @override
+  Widget build(BuildContext context) {
+    final content = config.direction == Axis.horizontal
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: config.mainAxisAlignment,
+            crossAxisAlignment: config.crossAxisAlignment,
+            children: [
+              config.icon,
+              SizedBox(width: config.spacing),
+              config.text,
+            ],
+          )
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: config.mainAxisAlignment,
+            crossAxisAlignment: config.crossAxisAlignment,
+            children: [
+              config.icon,
+              SizedBox(height: config.spacing),
+              config.text,
+            ],
+          );
+
+    Widget button = config.padding != null
+        ? Padding(padding: config.padding!, child: content)
+        : content;
+
+    if (config.backgroundColor != null ||
+        config.borderRadius != null ||
+        config.border != null ||
+        config.elevation != null) {
+      button = Container(
+        decoration: BoxDecoration(
+          color: config.backgroundColor,
+          borderRadius: config.borderRadius != null
+              ? BorderRadius.circular(config.borderRadius!)
+              : null,
+          border: config.border != null
+              ? Border.fromBorderSide(config.border!)
+              : null,
+        ),
+        child: button,
+      );
+    }
+
+    if (config.elevation != null && config.elevation! > 0) {
+      button = Material(
+        elevation: config.elevation!,
+        color: Colors.transparent,
+        borderRadius: config.borderRadius != null
+            ? BorderRadius.circular(config.borderRadius!)
+            : null,
+        child: button,
+      );
+    }
+
+    if (config.onPressed != null) {
+      // 使用 Material + InkWell 以支持涟漪效果，同时允许外层 GestureDetector 捕获事件
+      return Material(
+        color: Colors.transparent,
+        borderRadius: config.borderRadius != null
+            ? BorderRadius.circular(config.borderRadius!)
+            : null,
+        child: InkWell(
+          onTap: config.onPressed,
+          borderRadius: config.borderRadius != null
+              ? BorderRadius.circular(config.borderRadius!)
+              : null,
+          child: button,
+        ),
+      );
+    }
+
+    return button;
+  }
+}
+
+// ==================== IconTextButton 扩展方法 ====================
+
+extension IconTextButtonExtension on IconTextButtonConfig {
+  /// 设置背景色
+  IconTextButtonConfig bg(Color color) => copyWith(backgroundColor: color);
+
+  /// 设置前景色（文字和图标颜色）
+  IconTextButtonConfig fg(Color color) => copyWith(
+        foregroundColor: color,
+        icon: Icon(
+          icon.icon,
+          size: icon.size,
+          color: color,
+          semanticLabel: icon.semanticLabel,
+          textDirection: icon.textDirection,
+        ),
+        text: Text(
+          text.data ?? '',
+          style: (text.style ?? const TextStyle()).copyWith(color: color),
+          textAlign: text.textAlign,
+          maxLines: text.maxLines,
+          overflow: text.overflow,
+        ),
+      );
+
+  /// 设置内边距
+  IconTextButtonConfig pad(EdgeInsetsGeometry padding) =>
+      copyWith(padding: padding);
+
+  /// 设置内边距（全部）
+  IconTextButtonConfig padAll(double value) =>
+      copyWith(padding: EdgeInsets.all(value));
+
+  /// 设置间距
+  IconTextButtonConfig gap(double spacing) => copyWith(spacing: spacing);
+
+  /// 设置圆角
+  IconTextButtonConfig radius(double radius) => copyWith(borderRadius: radius);
+
+  /// 设置边框
+  IconTextButtonConfig borderSide({
+    Color color = Colors.black,
+    double width = 1.0,
+  }) =>
+      copyWith(border: BorderSide(color: color, width: width));
+
+  /// 设置阴影
+  IconTextButtonConfig shadow(double elevation) =>
+      copyWith(elevation: elevation);
+
+  /// 设置方向
+  IconTextButtonConfig dir(Axis direction) => copyWith(direction: direction);
+
+  /// 水平布局
+  IconTextButtonConfig horizontal() => copyWith(direction: Axis.horizontal);
+
+  /// 垂直布局
+  IconTextButtonConfig vertical() => copyWith(direction: Axis.vertical);
+
+  /// 设置对齐方式
+  IconTextButtonConfig align({
+    MainAxisAlignment? main,
+    CrossAxisAlignment? cross,
+  }) =>
+      copyWith(
+        mainAxisAlignment: main ?? mainAxisAlignment,
+        crossAxisAlignment: cross ?? crossAxisAlignment,
+      );
+
+  /// 构建 Widget
+  Widget build() => IconTextButton(config: this);
+}
+
+// ==================== 快速创建 IconTextButton 的扩展 ====================
+
+extension IconTextButtonCreator on Object {
+  /// 创建水平布局的 IconTextButton
+  IconTextButtonConfig iconTextButton({
+    required Icon icon,
+    required Text text,
+    VoidCallback? onPressed,
+    EdgeInsetsGeometry? padding,
+    double spacing = 8.0,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? borderRadius,
+    double? elevation,
+    BorderSide? border,
+  }) =>
+      IconTextButtonConfig(
+        icon: icon,
+        text: text,
+        onPressed: onPressed,
+        direction: Axis.horizontal,
+        padding: padding,
+        spacing: spacing,
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        borderRadius: borderRadius,
+        elevation: elevation,
+        border: border,
+      );
+
+  /// 创建垂直布局的 IconTextButton
+  IconTextButtonConfig iconTextButtonVertical({
+    required Icon icon,
+    required Text text,
+    VoidCallback? onPressed,
+    EdgeInsetsGeometry? padding,
+    double spacing = 8.0,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? borderRadius,
+    double? elevation,
+    BorderSide? border,
+  }) =>
+      IconTextButtonConfig(
+        icon: icon,
+        text: text,
+        onPressed: onPressed,
+        direction: Axis.vertical,
+        padding: padding,
+        spacing: spacing,
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        borderRadius: borderRadius,
+        elevation: elevation,
+        border: border,
       );
 }

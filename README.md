@@ -112,6 +112,51 @@ widget.tapRipple()     // Material 涟漪
     .withSpacing(8)
 ```
 
+### IconTextButton 组件
+
+```dart
+// 基础用法 - 水平布局
+IconTextButtonConfig(
+  icon: const Icon(Icons.favorite, color: Colors.white),
+  text: const Text('喜欢').textColor(Colors.white).bold(),
+  onPressed: () => print('clicked'),
+)
+  .bg(Colors.red)
+  .padAll(16)
+  .radius(24)
+  .build()
+
+// 链式调用 - 垂直布局
+IconTextButtonConfig(
+  icon: const Icon(Icons.share, size: 24),
+  text: const Text('分享').fontSize(12),
+  onPressed: () => print('clicked'),
+)
+  .vertical()
+  .fg(Colors.blue)
+  .padAll(16)
+  .gap(8)
+  .bg(Colors.blue.shade50)
+  .radius(12)
+  .borderSide(color: Colors.blue, width: 1)
+  .build()
+
+// 完整配置
+IconTextButtonConfig(
+  icon: const Icon(Icons.download),
+  text: const Text('下载'),
+  onPressed: () => print('clicked'),
+  direction: Axis.horizontal,  // 或 Axis.vertical
+  padding: EdgeInsets.all(16),
+  spacing: 8.0,
+)
+  .bg(Colors.green)
+  .fg(Colors.white)
+  .radius(8)
+  .shadow(2)
+  .build()
+```
+
 ### 数字扩展
 
 ```dart

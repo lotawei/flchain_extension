@@ -31,8 +31,10 @@ class ChainableExample extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('动画效果'),
+          _buildSectionTitle('动画效果 - 自动播放'),
           _buildAnimationDemo(),
+          _buildSectionTitle('动画效果 - 点击触发（已修复初始状态）'),
+          _buildOnTapAnimationDemo(),
           _buildSectionTitle('基础文本样式'),
           _buildTextDemo(),
           _buildSectionTitle('容器装饰'),
@@ -138,6 +140,45 @@ class ChainableExample extends StatelessWidget {
             .fullWidth()
             .border(color: Colors.blue, width: 1.5, radius: 24)
             .onTap(() => debugPrint('次按钮点击')),
+        12.vGap,
+        // IconTextButton - 水平布局
+        // IconTextButton - 带点击动画（默认显示，点击时缩放）
+        IconTextButtonConfig(
+          icon: const Icon(Icons.favorite, color: Colors.white),
+          text: const Text('喜欢').textColor(Colors.white).bold(),
+          onPressed: () => debugPrint('喜欢按钮点击'),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ).bg(Colors.red).radius(24).build().animate(Anim.scale(
+              begin: 1.0, // 初始可见（scale = 1.0）
+              trigger: AnimTrigger.onTap, // 点击时缩放
+              duration: const Duration(milliseconds: 200),
+            )),
+        12.vGap,
+        // IconTextButton - 垂直布局
+        IconTextButtonConfig(
+          icon: const Icon(Icons.share, color: Colors.blue, size: 24),
+          text: const Text('分享').fontSize(12).textColor(Colors.blue),
+          onPressed: () => debugPrint('分享按钮点击'),
+          padding: const EdgeInsets.all(16),
+        )
+            .vertical()
+            .borderSide(color: Colors.blue, width: 1.5)
+            .radius(12)
+            .build(),
+        12.vGap,
+        // IconTextButton - 链式调用示例
+        IconTextButtonConfig(
+          icon: const Icon(Icons.download, size: 20),
+          text: const Text('下载'),
+          onPressed: () => debugPrint('下载按钮点击'),
+        )
+            .fg(Colors.green)
+            .padAll(16)
+            .gap(8)
+            .bg(Colors.green.shade50)
+            .radius(8)
+            .borderSide(color: Colors.green, width: 1)
+            .build(),
         12.vGap,
         // 禁用按钮
         const Text('禁用按钮')
@@ -260,5 +301,184 @@ class ChainableExample extends StatelessWidget {
             .background(Colors.cyan.shade100)
             .cornerRadius(8)
             .animate(Anim.fadeSlide(trigger: AnimTrigger.onTap)),
+      ].toColumn(crossAxisAlignment: CrossAxisAlignment.start).paddingAll(16);
+
+  Widget _buildOnTapAnimationDemo() => [
+        // 说明文字
+        const Text('以下动画默认可见，点击时有反馈效果')
+            .fontSize(12)
+            .textColor(Colors.grey.shade600)
+            .paddingOnly(left: 16, bottom: 8),
+        // Scale - 缩放（已修复）
+        Row(
+          children: [
+            const Text('Scale 缩放')
+                .paddingAll(12)
+                .background(Colors.blue.shade100)
+                .cornerRadius(8)
+                .animate(Anim.scale(
+                  begin: 1.0,
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 200),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击缩放').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // Bounce - 弹跳（已修复）
+        Row(
+          children: [
+            const Text('Bounce 弹跳')
+                .paddingAll(12)
+                .background(Colors.purple.shade100)
+                .cornerRadius(8)
+                .animate(Anim.bounce(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 300),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击弹跳').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // FadeIn - 淡入（已修复）
+        Row(
+          children: [
+            const Text('FadeIn 淡入')
+                .paddingAll(12)
+                .background(Colors.green.shade100)
+                .cornerRadius(8)
+                .animate(Anim.fadeIn(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 300),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击闪烁').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // Slide - 滑动（已修复）
+        Row(
+          children: [
+            const Text('Slide 滑动')
+                .paddingAll(12)
+                .background(Colors.orange.shade100)
+                .cornerRadius(8)
+                .animate(Anim.slideLeft(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 300),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击滑动').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // Rotate - 旋转（已修复）
+        Row(
+          children: [
+            const Icon(Icons.refresh, color: Colors.teal, size: 30)
+                .paddingAll(12)
+                .background(Colors.teal.shade100)
+                .cornerRadius(8)
+                .animate(Anim.rotate(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 300),
+                )),
+            8.hGap,
+            const Text('Rotate 旋转 - 默认可见，点击旋转')
+                .fontSize(12)
+                .textColor(Colors.grey)
+                .expanded(),
+          ],
+        ),
+        12.vGap,
+        // Pulse - 脉冲（已修复）
+        Row(
+          children: [
+            const Icon(Icons.favorite, color: Colors.red, size: 30)
+                .paddingAll(12)
+                .background(Colors.red.shade100)
+                .cornerRadius(8)
+                .animate(Anim.pulse(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 400),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('Pulse 脉冲 - 默认可见，点击脉冲')
+                .fontSize(12)
+                .textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // FadeSlide - 淡入+滑入（已修复）
+        Row(
+          children: [
+            const Text('FadeSlide 淡入滑入')
+                .paddingAll(12)
+                .background(Colors.cyan.shade100)
+                .cornerRadius(8)
+                .animate(Anim.fadeSlide(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 300),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击效果').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // Shake - 抖动（本来就正常）
+        Row(
+          children: [
+            const Text('Shake 抖动')
+                .paddingAll(12)
+                .background(Colors.red.shade100)
+                .cornerRadius(8)
+                .animate(Anim.shake(
+                  trigger: AnimTrigger.onTap,
+                  duration: const Duration(milliseconds: 500),
+                ))
+                .expanded(),
+            8.hGap,
+            const Text('默认可见，点击抖动').fontSize(12).textColor(Colors.grey),
+          ],
+        ),
+        12.vGap,
+        // 组合测试 - IconTextButton + 动画
+        const Text('IconTextButton + Scale 动画')
+            .fontSize(12)
+            .textColor(Colors.grey.shade600)
+            .paddingOnly(left: 16, top: 8, bottom: 4),
+        IconTextButtonConfig(
+          icon: const Icon(Icons.thumb_up, color: Colors.white),
+          text: const Text('点赞').textColor(Colors.white).bold(),
+          onPressed: () => debugPrint('点赞按钮点击'),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        ).bg(Colors.blue).radius(20).build().animate(Anim.scale(
+              begin: 1.0,
+              trigger: AnimTrigger.onTap,
+              duration: const Duration(milliseconds: 200),
+            )),
+        12.vGap,
+        IconTextButtonConfig(
+          icon: const Icon(Icons.share, color: Colors.orange, size: 20),
+          text: const Text('分享').fontSize(12).textColor(Colors.orange),
+          onPressed: () => debugPrint('分享按钮点击'),
+          padding: const EdgeInsets.all(12),
+        )
+            .vertical()
+            .borderSide(color: Colors.orange, width: 1.5)
+            .radius(12)
+            .build()
+            .animate(Anim.bounce(
+              trigger: AnimTrigger.onTap,
+              duration: const Duration(milliseconds: 300),
+            )),
       ].toColumn(crossAxisAlignment: CrossAxisAlignment.start).paddingAll(16);
 }
