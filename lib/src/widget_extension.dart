@@ -38,15 +38,16 @@ extension WidgetModifier on Widget {
     double top = 0,
     double right = 0,
     double bottom = 0,
-  }) => Padding(
-    padding: EdgeInsets.only(
-      left: left,
-      top: top,
-      right: right,
-      bottom: bottom,
-    ),
-    child: this,
-  );
+  }) =>
+      Padding(
+        padding: EdgeInsets.only(
+          left: left,
+          top: top,
+          right: right,
+          bottom: bottom,
+        ),
+        child: this,
+      );
 
   // Margin 相关（通过 Container 实现）
   Widget margin(EdgeInsetsGeometry margin) =>
@@ -79,17 +80,18 @@ extension WidgetModifier on Widget {
     BorderRadius? borderRadius,
     List<BoxShadow>? boxShadow,
     Gradient? gradient,
-  }) => Container(
-    decoration: BoxDecoration(
-      color: color,
-      image: image,
-      border: border,
-      borderRadius: borderRadius,
-      boxShadow: boxShadow,
-      gradient: gradient,
-    ),
-    child: this,
-  );
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          color: color,
+          image: image,
+          border: border,
+          borderRadius: borderRadius,
+          boxShadow: boxShadow,
+          gradient: gradient,
+        ),
+        child: this,
+      );
 
   Widget cornerRadius(double radius) =>
       ClipRRect(borderRadius: BorderRadius.circular(radius), child: this);
@@ -104,27 +106,29 @@ extension WidgetModifier on Widget {
     Color color = Colors.black,
     double width = 1,
     double radius = 0,
-  }) => Container(
-    decoration: BoxDecoration(
-      border: Border.all(color: color, width: width),
-      borderRadius: BorderRadius.circular(radius),
-    ),
-    child: this,
-  );
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: width),
+          borderRadius: BorderRadius.circular(radius),
+        ),
+        child: this,
+      );
 
   // 阴影
   Widget shadow({
     Color color = Colors.black26,
     double blurRadius = 4,
     Offset offset = const Offset(0, 2),
-  }) => Container(
-    decoration: BoxDecoration(
-      boxShadow: [
-        BoxShadow(color: color, blurRadius: blurRadius, offset: offset),
-      ],
-    ),
-    child: this,
-  );
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(color: color, blurRadius: blurRadius, offset: offset),
+          ],
+        ),
+        child: this,
+      );
 
   // 手势相关
   Widget onTap(VoidCallback onTap) =>
@@ -137,12 +141,13 @@ extension WidgetModifier on Widget {
     VoidCallback? onTap,
     VoidCallback? onLongPress,
     Color? splashColor,
-  }) => InkWell(
-    onTap: onTap,
-    onLongPress: onLongPress,
-    splashColor: splashColor,
-    child: this,
-  );
+  }) =>
+      InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        splashColor: splashColor,
+        child: this,
+      );
 
   // 可见性
   Widget visible(bool visible) => Visibility(visible: visible, child: this);
@@ -159,6 +164,11 @@ extension WidgetModifier on Widget {
 
   Widget flexible({int flex = 1, FlexFit fit = FlexFit.loose}) =>
       Flexible(flex: flex, fit: fit, child: this);
+
+  /// 安全版本的 flexible，适用于可滚动容器中的 Column
+  /// 自动使用 FlexFit.loose，避免 unbounded height 约束错误
+  Widget flexibleSafe({int flex = 1}) =>
+      Flexible(flex: flex, fit: FlexFit.loose, child: this);
 
   // 滚动
   Widget scrollable({Axis axis = Axis.vertical}) =>
@@ -182,15 +192,16 @@ extension WidgetModifier on Widget {
     double? maxWidth,
     double? minHeight,
     double? maxHeight,
-  }) => ConstrainedBox(
-    constraints: BoxConstraints(
-      minWidth: minWidth ?? 0,
-      maxWidth: maxWidth ?? double.infinity,
-      minHeight: minHeight ?? 0,
-      maxHeight: maxHeight ?? double.infinity,
-    ),
-    child: this,
-  );
+  }) =>
+      ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: minWidth ?? 0,
+          maxWidth: maxWidth ?? double.infinity,
+          minHeight: minHeight ?? 0,
+          maxHeight: maxHeight ?? double.infinity,
+        ),
+        child: this,
+      );
 
   Widget aspectRatio(double aspectRatio) =>
       AspectRatio(aspectRatio: aspectRatio, child: this);
@@ -201,13 +212,14 @@ extension WidgetModifier on Widget {
     double elevation = 1,
     ShapeBorder? shape,
     EdgeInsetsGeometry? margin,
-  }) => Card(
-    color: color,
-    elevation: elevation,
-    shape: shape,
-    margin: margin,
-    child: this,
-  );
+  }) =>
+      Card(
+        color: color,
+        elevation: elevation,
+        shape: shape,
+        margin: margin,
+        child: this,
+      );
 
   // 定位相关
   Widget positioned({
@@ -217,28 +229,30 @@ extension WidgetModifier on Widget {
     double? bottom,
     double? width,
     double? height,
-  }) => Positioned(
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-    width: width,
-    height: height,
-    child: this,
-  );
+  }) =>
+      Positioned(
+        left: left,
+        top: top,
+        right: right,
+        bottom: bottom,
+        width: width,
+        height: height,
+        child: this,
+      );
 
   Widget positionedFill({
     double left = 0,
     double top = 0,
     double right = 0,
     double bottom = 0,
-  }) => Positioned.fill(
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-    child: this,
-  );
+  }) =>
+      Positioned.fill(
+        left: left,
+        top: top,
+        right: right,
+        bottom: bottom,
+        child: this,
+      );
 
   // FittedBox
   Widget fitted({BoxFit fit = BoxFit.contain}) =>
@@ -256,12 +270,13 @@ extension WidgetModifier on Widget {
     Color color = Colors.transparent,
     double elevation = 0,
     BorderRadius? borderRadius,
-  }) => Material(
-    color: color,
-    elevation: elevation,
-    borderRadius: borderRadius,
-    child: this,
-  );
+  }) =>
+      Material(
+        color: color,
+        elevation: elevation,
+        borderRadius: borderRadius,
+        child: this,
+      );
 
   // Tooltip
   Widget tooltip(String message) => Tooltip(message: message, child: this);
@@ -281,74 +296,78 @@ extension WidgetModifier on Widget {
     required double opacity,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeInOut,
-  }) => AnimatedOpacity(
-    opacity: opacity,
-    duration: duration,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      AnimatedOpacity(
+        opacity: opacity,
+        duration: duration,
+        curve: curve,
+        child: this,
+      );
 
   Widget animatedScale({
     required double scale,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeInOut,
-  }) => AnimatedScale(
-    scale: scale,
-    duration: duration,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      AnimatedScale(
+        scale: scale,
+        duration: duration,
+        curve: curve,
+        child: this,
+      );
 
   Widget animatedSlide({
     required Offset offset,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeInOut,
-  }) => AnimatedSlide(
-    offset: offset,
-    duration: duration,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      AnimatedSlide(
+        offset: offset,
+        duration: duration,
+        curve: curve,
+        child: this,
+      );
 
   // ColorFiltered
   Widget colorFiltered(ColorFilter colorFilter) =>
       ColorFiltered(colorFilter: colorFilter, child: this);
 
   Widget grayscale() => ColorFiltered(
-    colorFilter: const ColorFilter.matrix(<double>[
-      0.2126,
-      0.7152,
-      0.0722,
-      0,
-      0,
-      0.2126,
-      0.7152,
-      0.0722,
-      0,
-      0,
-      0.2126,
-      0.7152,
-      0.0722,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-    ]),
-    child: this,
-  );
+        colorFilter: const ColorFilter.matrix(<double>[
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]),
+        child: this,
+      );
 
   // ShaderMask
   Widget shaderMask({
     required Shader Function(Rect bounds) shaderCallback,
     BlendMode blendMode = BlendMode.modulate,
-  }) => ShaderMask(
-    shaderCallback: shaderCallback,
-    blendMode: blendMode,
-    child: this,
-  );
+  }) =>
+      ShaderMask(
+        shaderCallback: shaderCallback,
+        blendMode: blendMode,
+        child: this,
+      );
 
   // RepaintBoundary (性能优化)
   Widget repaintBoundary() => RepaintBoundary(child: this);
@@ -370,12 +389,13 @@ extension WidgetModifier on Widget {
     double? widthFactor,
     double? heightFactor,
     AlignmentGeometry alignment = Alignment.center,
-  }) => FractionallySizedBox(
-    widthFactor: widthFactor,
-    heightFactor: heightFactor,
-    alignment: alignment,
-    child: this,
-  );
+  }) =>
+      FractionallySizedBox(
+        widthFactor: widthFactor,
+        heightFactor: heightFactor,
+        alignment: alignment,
+        child: this,
+      );
 
   // UnconstrainedBox
   Widget unconstrained({Axis? constrainedAxis}) =>
@@ -385,7 +405,8 @@ extension WidgetModifier on Widget {
   Widget limitedBox({
     double maxWidth = double.infinity,
     double maxHeight = double.infinity,
-  }) => LimitedBox(maxWidth: maxWidth, maxHeight: maxHeight, child: this);
+  }) =>
+      LimitedBox(maxWidth: maxWidth, maxHeight: maxHeight, child: this);
 
   // 更多手势
   Widget onDoubleTap(VoidCallback onDoubleTap) =>
@@ -403,25 +424,27 @@ extension WidgetModifier on Widget {
     VoidCallback? onDismissed,
     DismissDirection direction = DismissDirection.horizontal,
     Widget? background,
-  }) => Dismissible(
-    key: key,
-    onDismissed: (_) => onDismissed?.call(),
-    direction: direction,
-    background: background ?? Container(color: Colors.red),
-    child: this,
-  );
+  }) =>
+      Dismissible(
+        key: key,
+        onDismissed: (_) => onDismissed?.call(),
+        direction: direction,
+        background: background ?? Container(color: Colors.red),
+        child: this,
+      );
 
   // Draggable
   Widget draggable<T extends Object>({
     required T data,
     Widget? feedback,
     Widget? childWhenDragging,
-  }) => Draggable<T>(
-    data: data,
-    feedback: feedback ?? this,
-    childWhenDragging: childWhenDragging,
-    child: this,
-  );
+  }) =>
+      Draggable<T>(
+        data: data,
+        feedback: feedback ?? this,
+        childWhenDragging: childWhenDragging,
+        child: this,
+      );
 
   // 更多动画
   Widget animatedContainer({
@@ -433,39 +456,42 @@ extension WidgetModifier on Widget {
     double? width,
     double? height,
     BoxDecoration? decoration,
-  }) => AnimatedContainer(
-    duration: duration,
-    curve: curve,
-    color: decoration == null ? color : null,
-    padding: padding,
-    margin: margin,
-    width: width,
-    height: height,
-    decoration: decoration,
-    child: this,
-  );
+  }) =>
+      AnimatedContainer(
+        duration: duration,
+        curve: curve,
+        color: decoration == null ? color : null,
+        padding: padding,
+        margin: margin,
+        width: width,
+        height: height,
+        decoration: decoration,
+        child: this,
+      );
 
   Widget animatedPadding({
     required EdgeInsetsGeometry padding,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeInOut,
-  }) => AnimatedPadding(
-    padding: padding,
-    duration: duration,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      AnimatedPadding(
+        padding: padding,
+        duration: duration,
+        curve: curve,
+        child: this,
+      );
 
   Widget animatedAlign({
     required AlignmentGeometry alignment,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeInOut,
-  }) => AnimatedAlign(
-    alignment: alignment,
-    duration: duration,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      AnimatedAlign(
+        alignment: alignment,
+        duration: duration,
+        curve: curve,
+        child: this,
+      );
 
   Widget animatedPositioned({
     Duration duration = const Duration(milliseconds: 300),
@@ -476,46 +502,50 @@ extension WidgetModifier on Widget {
     double? bottom,
     double? width,
     double? height,
-  }) => AnimatedPositioned(
-    duration: duration,
-    curve: curve,
-    left: left,
-    top: top,
-    right: right,
-    bottom: bottom,
-    width: width,
-    height: height,
-    child: this,
-  );
+  }) =>
+      AnimatedPositioned(
+        duration: duration,
+        curve: curve,
+        left: left,
+        top: top,
+        right: right,
+        bottom: bottom,
+        width: width,
+        height: height,
+        child: this,
+      );
 
   // 渐变背景
   Widget linearGradient({
     required List<Color> colors,
     AlignmentGeometry begin = Alignment.centerLeft,
     AlignmentGeometry end = Alignment.centerRight,
-  }) => Container(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(colors: colors, begin: begin, end: end),
-    ),
-    child: this,
-  );
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: colors, begin: begin, end: end),
+        ),
+        child: this,
+      );
 
   Widget radialGradient({
     required List<Color> colors,
     double radius = 0.5,
     AlignmentGeometry center = Alignment.center,
-  }) => Container(
-    decoration: BoxDecoration(
-      gradient: RadialGradient(colors: colors, radius: radius, center: center),
-    ),
-    child: this,
-  );
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          gradient:
+              RadialGradient(colors: colors, radius: radius, center: center),
+        ),
+        child: this,
+      );
 
   // 模糊效果
   Widget blur({double sigmaX = 5, double sigmaY = 5}) => ImageFiltered(
-    imageFilter: ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
-    child: this,
-  );
+        imageFilter: ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
+        child: this,
+      );
 
   // ClipPath
   Widget clipPath(CustomClipper<Path> clipper) =>
@@ -535,61 +565,66 @@ extension WidgetModifier on Widget {
 
   // 长按菜单
   Widget contextMenu({required List<PopupMenuEntry> items}) => GestureDetector(
-    onLongPressStart: (details) {
-      // 需要在 StatefulWidget 中使用 showMenu
-    },
-    child: this,
-  );
+        onLongPressStart: (details) {
+          // 需要在 StatefulWidget 中使用 showMenu
+        },
+        child: this,
+      );
 
   // 刷新指示器
   Widget refreshIndicator({
     required Future<void> Function() onRefresh,
     Color? color,
-  }) => RefreshIndicator(onRefresh: onRefresh, color: color, child: this);
+  }) =>
+      RefreshIndicator(onRefresh: onRefresh, color: color, child: this);
 
   // 通知监听
   Widget notificationListener<T extends Notification>({
     required bool Function(T) onNotification,
-  }) => NotificationListener<T>(onNotification: onNotification, child: this);
+  }) =>
+      NotificationListener<T>(onNotification: onNotification, child: this);
 
   // 主题相关
   Widget themed(
     Widget Function(BuildContext context, ThemeData theme) builder,
-  ) => Builder(builder: (context) => builder(context, Theme.of(context)));
+  ) =>
+      Builder(builder: (context) => builder(context, Theme.of(context)));
 
   // MediaQuery 响应式
   Widget responsive({
     Widget Function(BuildContext)? onMobile,
     Widget Function(BuildContext)? onTablet,
     Widget Function(BuildContext)? onDesktop,
-  }) => LayoutBuilder(
-    builder: (context, constraints) {
-      if (constraints.maxWidth < 600 && onMobile != null) {
-        return onMobile(context);
-      } else if (constraints.maxWidth < 1200 && onTablet != null) {
-        return onTablet(context);
-      } else if (onDesktop != null) {
-        return onDesktop(context);
-      }
-      return this;
-    },
-  );
+  }) =>
+      LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 600 && onMobile != null) {
+            return onMobile(context);
+          } else if (constraints.maxWidth < 1200 && onTablet != null) {
+            return onTablet(context);
+          } else if (onDesktop != null) {
+            return onDesktop(context);
+          }
+          return this;
+        },
+      );
 
   // 根据条件构建
   Widget ifElse(
     bool condition,
     Widget Function(Widget) ifTrue, [
     Widget Function(Widget)? ifFalse,
-  ]) => condition ? ifTrue(this) : (ifFalse?.call(this) ?? this);
+  ]) =>
+      condition ? ifTrue(this) : (ifFalse?.call(this) ?? this);
 
   // 应用多个修饰器
   Widget apply(Widget Function(Widget) modifier) => modifier(this);
 
   // Sliver 系列
   Widget sliverPadding(EdgeInsetsGeometry padding) => SliverPadding(
-    padding: padding,
-    sliver: SliverToBoxAdapter(child: this),
-  );
+        padding: padding,
+        sliver: SliverToBoxAdapter(child: this),
+      );
 
   // ==================== iOS UIView.animate 风格动画 ====================
 
@@ -598,24 +633,26 @@ extension WidgetModifier on Widget {
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeIn,
-  }) => _FadeInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      _FadeInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        child: this,
+      );
 
   /// 淡出动画
   Widget fadeOut({
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
-  }) => _FadeOutWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    child: this,
-  );
+  }) =>
+      _FadeOutWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        child: this,
+      );
 
   /// 缩放进入 (从小变大)
   Widget scaleIn({
@@ -623,77 +660,83 @@ extension WidgetModifier on Widget {
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOutBack,
     double begin = 0.0,
-  }) => _ScaleInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    begin: begin,
-    child: this,
-  );
+  }) =>
+      _ScaleInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        begin: begin,
+        child: this,
+      );
 
   /// 从左滑入
   Widget slideInFromLeft({
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
-  }) => _SlideInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    beginOffset: const Offset(-1, 0),
-    child: this,
-  );
+  }) =>
+      _SlideInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        beginOffset: const Offset(-1, 0),
+        child: this,
+      );
 
   /// 从右滑入
   Widget slideInFromRight({
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
-  }) => _SlideInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    beginOffset: const Offset(1, 0),
-    child: this,
-  );
+  }) =>
+      _SlideInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        beginOffset: const Offset(1, 0),
+        child: this,
+      );
 
   /// 从上滑入
   Widget slideInFromTop({
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
-  }) => _SlideInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    beginOffset: const Offset(0, -1),
-    child: this,
-  );
+  }) =>
+      _SlideInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        beginOffset: const Offset(0, -1),
+        child: this,
+      );
 
   /// 从下滑入
   Widget slideInFromBottom({
     Duration duration = const Duration(milliseconds: 300),
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
-  }) => _SlideInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    beginOffset: const Offset(0, 1),
-    child: this,
-  );
+  }) =>
+      _SlideInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        beginOffset: const Offset(0, 1),
+        child: this,
+      );
 
   /// 弹跳效果
   Widget bounceIn({
     Duration duration = const Duration(milliseconds: 500),
     Duration delay = Duration.zero,
-  }) => _ScaleInWidget(
-    duration: duration,
-    delay: delay,
-    curve: Curves.elasticOut,
-    begin: 0.3,
-    child: this,
-  );
+  }) =>
+      _ScaleInWidget(
+        duration: duration,
+        delay: delay,
+        curve: Curves.elasticOut,
+        begin: 0.3,
+        child: this,
+      );
 
   /// 旋转进入
   Widget rotateIn({
@@ -701,43 +744,47 @@ extension WidgetModifier on Widget {
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
     double turns = 1,
-  }) => _RotateInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    turns: turns,
-    child: this,
-  );
+  }) =>
+      _RotateInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        turns: turns,
+        child: this,
+      );
 
   /// 抖动效果 (类似错误提示)
   Widget shake({
     Duration duration = const Duration(milliseconds: 500),
     Duration delay = Duration.zero,
     double intensity = 10,
-  }) => _ShakeWidget(
-    duration: duration,
-    delay: delay,
-    intensity: intensity,
-    child: this,
-  );
+  }) =>
+      _ShakeWidget(
+        duration: duration,
+        delay: delay,
+        intensity: intensity,
+        child: this,
+      );
 
   /// 脉冲效果 (循环)
   Widget pulse({
     Duration duration = const Duration(milliseconds: 1000),
     double minScale = 0.95,
     double maxScale = 1.05,
-  }) => _PulseWidget(
-    duration: duration,
-    minScale: minScale,
-    maxScale: maxScale,
-    child: this,
-  );
+  }) =>
+      _PulseWidget(
+        duration: duration,
+        minScale: minScale,
+        maxScale: maxScale,
+        child: this,
+      );
 
   /// 闪烁效果 (循环)
   Widget blink({
     Duration duration = const Duration(milliseconds: 1000),
     double minOpacity = 0.3,
-  }) => _BlinkWidget(duration: duration, minOpacity: minOpacity, child: this);
+  }) =>
+      _BlinkWidget(duration: duration, minOpacity: minOpacity, child: this);
 
   /// 组合动画：淡入+滑入
   Widget fadeSlideIn({
@@ -745,13 +792,14 @@ extension WidgetModifier on Widget {
     Duration delay = Duration.zero,
     Curve curve = Curves.easeOut,
     Offset beginOffset = const Offset(0, 0.2),
-  }) => _FadeSlideInWidget(
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    beginOffset: beginOffset,
-    child: this,
-  );
+  }) =>
+      _FadeSlideInWidget(
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        beginOffset: beginOffset,
+        child: this,
+      );
 
   // ==================== 统一动画 API ====================
 
@@ -811,14 +859,15 @@ class Anim {
     Curve curve = Curves.easeIn,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.fadeIn,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.fadeIn,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 淡出
   static Anim fadeOut({
@@ -827,14 +876,15 @@ class Anim {
     Curve curve = Curves.easeOut,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.fadeOut,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.fadeOut,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 缩放
   static Anim scale({
@@ -844,15 +894,16 @@ class Anim {
     double begin = 0.0,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.scale,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    scaleBegin: begin,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.scale,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        scaleBegin: begin,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 弹跳
   static Anim bounce({
@@ -860,15 +911,16 @@ class Anim {
     Duration delay = Duration.zero,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.bounce,
-    duration: duration,
-    delay: delay,
-    curve: Curves.elasticOut,
-    scaleBegin: 0.3,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.bounce,
+        duration: duration,
+        delay: delay,
+        curve: Curves.elasticOut,
+        scaleBegin: 0.3,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 从左滑入
   static Anim slideLeft({
@@ -877,15 +929,16 @@ class Anim {
     Curve curve = Curves.easeOut,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.slide,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    slideOffset: const Offset(-1, 0),
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.slide,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        slideOffset: const Offset(-1, 0),
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 从右滑入
   static Anim slideRight({
@@ -894,15 +947,16 @@ class Anim {
     Curve curve = Curves.easeOut,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.slide,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    slideOffset: const Offset(1, 0),
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.slide,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        slideOffset: const Offset(1, 0),
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 从上滑入
   static Anim slideTop({
@@ -911,15 +965,16 @@ class Anim {
     Curve curve = Curves.easeOut,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.slide,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    slideOffset: const Offset(0, -1),
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.slide,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        slideOffset: const Offset(0, -1),
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 从下滑入
   static Anim slideBottom({
@@ -928,15 +983,16 @@ class Anim {
     Curve curve = Curves.easeOut,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.slide,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    slideOffset: const Offset(0, 1),
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.slide,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        slideOffset: const Offset(0, 1),
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 旋转
   static Anim rotate({
@@ -946,15 +1002,16 @@ class Anim {
     double turns = 1,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.rotate,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    turns: turns,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.rotate,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        turns: turns,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 抖动
   static Anim shake({
@@ -963,38 +1020,41 @@ class Anim {
     double intensity = 10,
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.shake,
-    duration: duration,
-    delay: delay,
-    intensity: intensity,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.shake,
+        duration: duration,
+        delay: delay,
+        intensity: intensity,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 脉冲
   static Anim pulse({
     Duration duration = const Duration(milliseconds: 1000),
     bool repeat = true,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.pulse,
-    duration: duration,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.pulse,
+        duration: duration,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 闪烁
   static Anim blink({
     Duration duration = const Duration(milliseconds: 1000),
     bool repeat = true,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.blink,
-    duration: duration,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.blink,
+        duration: duration,
+        repeat: repeat,
+        trigger: trigger,
+      );
 
   /// 淡入+滑入组合
   static Anim fadeSlide({
@@ -1004,15 +1064,16 @@ class Anim {
     Offset offset = const Offset(0, 0.2),
     bool repeat = false,
     AnimTrigger trigger = AnimTrigger.auto,
-  }) => Anim._(
-    type: AnimType.fadeSlide,
-    duration: duration,
-    delay: delay,
-    curve: curve,
-    slideOffset: offset,
-    repeat: repeat,
-    trigger: trigger,
-  );
+  }) =>
+      Anim._(
+        type: AnimType.fadeSlide,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        slideOffset: offset,
+        repeat: repeat,
+        trigger: trigger,
+      );
 }
 
 enum AnimType {
@@ -1032,120 +1093,124 @@ enum AnimType {
 
 extension TextModifier on Text {
   Text fontSize(double size) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(fontSize: size),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(fontSize: size),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text fontWeight(FontWeight weight) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(fontWeight: weight),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(fontWeight: weight),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text bold() => fontWeight(FontWeight.bold);
 
   Text textColor(Color color) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(color: color),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(color: color),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text aligned(TextAlign align) => Text(
-    data ?? '',
-    style: style,
-    textAlign: align,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: style,
+        textAlign: align,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text lines(int count) => Text(
-    data ?? '',
-    style: style,
-    textAlign: textAlign,
-    maxLines: count,
-    overflow: overflow ?? TextOverflow.ellipsis,
-  );
+        data ?? '',
+        style: style,
+        textAlign: textAlign,
+        maxLines: count,
+        overflow: overflow ?? TextOverflow.ellipsis,
+      );
 
   Text underline() => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(
-      decoration: TextDecoration.underline,
-    ),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(
+          decoration: TextDecoration.underline,
+        ),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text lineThrough() => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(
-      decoration: TextDecoration.lineThrough,
-    ),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(
+          decoration: TextDecoration.lineThrough,
+        ),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text italic() => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(fontStyle: FontStyle.italic),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style:
+            (style ?? const TextStyle()).copyWith(fontStyle: FontStyle.italic),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text letterSpacing(double spacing) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(letterSpacing: spacing),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(letterSpacing: spacing),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text lineHeight(double height) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(height: height),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(height: height),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text fontFamily(String family) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(fontFamily: family),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(fontFamily: family),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text shadow({
     Color color = Colors.black26,
     double blurRadius = 2,
     Offset offset = const Offset(1, 1),
-  }) => Text(
-    data ?? '',
-    style: (style ?? const TextStyle()).copyWith(
-      shadows: [Shadow(color: color, blurRadius: blurRadius, offset: offset)],
-    ),
-    textAlign: textAlign,
-    maxLines: maxLines,
-    overflow: overflow,
-  );
+  }) =>
+      Text(
+        data ?? '',
+        style: (style ?? const TextStyle()).copyWith(
+          shadows: [
+            Shadow(color: color, blurRadius: blurRadius, offset: offset)
+          ],
+        ),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
 
   Text ellipsis() => Text(
-    data ?? '',
-    style: style,
-    textAlign: textAlign,
-    maxLines: maxLines ?? 1,
-    overflow: TextOverflow.ellipsis,
-  );
+        data ?? '',
+        style: style,
+        textAlign: textAlign,
+        maxLines: maxLines ?? 1,
+        overflow: TextOverflow.ellipsis,
+      );
 }
 
 // ==================== Icon 专用扩展 ====================
@@ -1163,26 +1228,26 @@ extension ImageModifier on Image {
       SizedBox(width: width, height: height, child: this);
 
   Widget imageFit(BoxFit fit) => SizedBox(
-    child: Image(image: image, fit: fit),
-  );
+        child: Image(image: image, fit: fit),
+      );
 }
 
 // ==================== Container 专用扩展 ====================
 
 extension ContainerModifier on Container {
   Container backgroundColor(Color color) => Container(
-    key: key,
-    alignment: alignment,
-    padding: padding,
-    color: decoration == null ? color : null,
-    decoration: decoration != null
-        ? (decoration as BoxDecoration).copyWith(color: color)
-        : null,
-    margin: margin,
-    width: constraints?.maxWidth,
-    height: constraints?.maxHeight,
-    child: child,
-  );
+        key: key,
+        alignment: alignment,
+        padding: padding,
+        color: decoration == null ? color : null,
+        decoration: decoration != null
+            ? (decoration as BoxDecoration).copyWith(color: color)
+            : null,
+        margin: margin,
+        width: constraints?.maxWidth,
+        height: constraints?.maxHeight,
+        child: child,
+      );
 }
 
 // ==================== List<Widget> 扩展 ====================
@@ -1192,50 +1257,56 @@ extension WidgetListModifier on List<Widget> {
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
     MainAxisSize mainAxisSize = MainAxisSize.max,
-  }) => Column(
-    mainAxisAlignment: mainAxisAlignment,
-    crossAxisAlignment: crossAxisAlignment,
-    mainAxisSize: mainAxisSize,
-    children: this,
-  );
+    bool shrinkWrap = false,
+  }) =>
+      Column(
+        mainAxisAlignment: mainAxisAlignment,
+        crossAxisAlignment: crossAxisAlignment,
+        mainAxisSize: shrinkWrap ? MainAxisSize.min : mainAxisSize,
+        children: this,
+      );
 
   Widget toRow({
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
     MainAxisSize mainAxisSize = MainAxisSize.max,
-  }) => Row(
-    mainAxisAlignment: mainAxisAlignment,
-    crossAxisAlignment: crossAxisAlignment,
-    mainAxisSize: mainAxisSize,
-    children: this,
-  );
+  }) =>
+      Row(
+        mainAxisAlignment: mainAxisAlignment,
+        crossAxisAlignment: crossAxisAlignment,
+        mainAxisSize: mainAxisSize,
+        children: this,
+      );
 
   Widget toStack({
     AlignmentGeometry alignment = AlignmentDirectional.topStart,
     StackFit fit = StackFit.loose,
-  }) => Stack(alignment: alignment, fit: fit, children: this);
+  }) =>
+      Stack(alignment: alignment, fit: fit, children: this);
 
   Widget toWrap({
     double spacing = 0,
     double runSpacing = 0,
     WrapAlignment alignment = WrapAlignment.start,
-  }) => Wrap(
-    spacing: spacing,
-    runSpacing: runSpacing,
-    alignment: alignment,
-    children: this,
-  );
+  }) =>
+      Wrap(
+        spacing: spacing,
+        runSpacing: runSpacing,
+        alignment: alignment,
+        children: this,
+      );
 
   Widget toListView({
     Axis scrollDirection = Axis.vertical,
     EdgeInsetsGeometry? padding,
     bool shrinkWrap = false,
-  }) => ListView(
-    scrollDirection: scrollDirection,
-    padding: padding,
-    shrinkWrap: shrinkWrap,
-    children: this,
-  );
+  }) =>
+      ListView(
+        scrollDirection: scrollDirection,
+        padding: padding,
+        shrinkWrap: shrinkWrap,
+        children: this,
+      );
 
   // 添加间距
   List<Widget> withSpacing(double spacing) {
@@ -1243,7 +1314,8 @@ extension WidgetListModifier on List<Widget> {
     return expand((widget) sync* {
       yield widget;
       yield SizedBox(width: spacing, height: spacing);
-    }).toList()..removeLast();
+    }).toList()
+      ..removeLast();
   }
 
   List<Widget> withDivider({Widget? divider}) {
@@ -1252,7 +1324,8 @@ extension WidgetListModifier on List<Widget> {
     return expand((widget) sync* {
       yield widget;
       yield div;
-    }).toList()..removeLast();
+    }).toList()
+      ..removeLast();
   }
 }
 
@@ -1716,9 +1789,9 @@ class _FadeSlideInWidgetState extends State<_FadeSlideInWidget>
 
   @override
   Widget build(BuildContext context) => FadeTransition(
-    opacity: _fadeAnimation,
-    child: SlideTransition(position: _slideAnimation, child: widget.child),
-  );
+        opacity: _fadeAnimation,
+        child: SlideTransition(position: _slideAnimation, child: widget.child),
+      );
 }
 
 // ==================== 统一动画 Widget ====================
@@ -1871,13 +1944,15 @@ extension TapAnimationModifier on Widget {
   Widget tapScale({
     double scale = 0.95,
     Duration duration = const Duration(milliseconds: 100),
-  }) => _TapScaleWidget(scale: scale, duration: duration, child: this);
+  }) =>
+      _TapScaleWidget(scale: scale, duration: duration, child: this);
 
   /// 点击透明度效果
   Widget tapOpacity({
     double opacity = 0.6,
     Duration duration = const Duration(milliseconds: 100),
-  }) => _TapOpacityWidget(opacity: opacity, duration: duration, child: this);
+  }) =>
+      _TapOpacityWidget(opacity: opacity, duration: duration, child: this);
 
   /// 点击弹跳效果
   Widget tapBounce({Duration duration = const Duration(milliseconds: 150)}) =>
@@ -1885,14 +1960,14 @@ extension TapAnimationModifier on Widget {
 
   /// 点击涟漪效果 (带回调)
   Widget tapRipple({VoidCallback? onTap, Color? color}) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: onTap,
-      splashColor: color,
-      borderRadius: BorderRadius.circular(8),
-      child: this,
-    ),
-  );
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: color,
+          borderRadius: BorderRadius.circular(8),
+          child: this,
+        ),
+      );
 }
 
 /// 点击缩放
@@ -1934,11 +2009,11 @@ class _TapScaleWidgetState extends State<_TapScaleWidget>
   void _onTapCancel() => _controller.reverse();
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTapDown: _onTapDown,
-    onTapUp: _onTapUp,
-    onTapCancel: _onTapCancel,
-    child: ScaleTransition(scale: _animation, child: widget.child),
-  );
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        child: ScaleTransition(scale: _animation, child: widget.child),
+      );
 }
 
 /// 点击透明度
@@ -1980,11 +2055,11 @@ class _TapOpacityWidgetState extends State<_TapOpacityWidget>
   void _onTapCancel() => _controller.reverse();
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTapDown: _onTapDown,
-    onTapUp: _onTapUp,
-    onTapCancel: _onTapCancel,
-    child: FadeTransition(opacity: _animation, child: widget.child),
-  );
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        child: FadeTransition(opacity: _animation, child: widget.child),
+      );
 }
 
 /// 点击弹跳
@@ -2023,7 +2098,7 @@ class _TapBounceWidgetState extends State<_TapBounceWidget>
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: _onTap,
-    child: ScaleTransition(scale: _animation, child: widget.child),
-  );
+        onTap: _onTap,
+        child: ScaleTransition(scale: _animation, child: widget.child),
+      );
 }
