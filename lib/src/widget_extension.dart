@@ -2207,20 +2207,29 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
             builder: (context, child) {
               final beginOffset = anim.slideOffset ?? const Offset(0, 1);
               Offset offset;
+              double scaleValue;
               if (_controller.value >= 0.99) {
                 offset = Offset.zero; // 初始或结束状态
+                scaleValue = 1.0;
               } else {
                 // 滑动效果：从正常位置偏移一点再回来
                 final progress = _controller.value;
                 if (progress <= 0.5) {
                   // 前半段：从 zero 到 beginOffset 的一部分
-                  offset = Offset.zero + (beginOffset * progress * 2 * 0.3);
+                  final t = progress * 2;
+                  offset = beginOffset * (t * 0.2);
+                  scaleValue = 1.0 - t * 0.05;
                 } else {
                   // 后半段：从偏移回到 zero
-                  offset = beginOffset * 0.3 * (1 - (progress - 0.5) * 2);
+                  final t = (progress - 0.5) * 2;
+                  offset = beginOffset * (0.2 * (1 - t));
+                  scaleValue = 0.95 + t * 0.05;
                 }
               }
-              return Transform.translate(offset: offset, child: widget.child);
+              return FractionalTranslation(
+                translation: offset,
+                child: Transform.scale(scale: scaleValue, child: widget.child),
+              );
             },
             child: widget.child,
           );
@@ -2507,29 +2516,15 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
               progress = _controller.value;
             }
 
-            if (progress <= 0) {
-              return widget.child;
-            }
-
             final snowColor = anim.snowColor ?? const Color(0xFFFFFFFF);
             final intensity = anim.intensity ?? 0.7;
-
-            return _ParticleSystemWidget(
+            return _SnowFieldWidget(
               child: widget.child,
-              config: ParticleConfig(
-                type: AnimType.snow,
-                color: snowColor,
-                density: intensity,
-                minRadius: 2.0,
-                maxRadius: 6.0,
-                minSpeed: 20.0,
-                maxSpeed: 50.0,
-                direction: 1, // 向下
-                lifetime: 3.0,
-                spawnFromEdge: true,
-              ),
-              progress: progress,
               controller: _controller,
+              color: snowColor,
+              intensity: intensity,
+              trigger: anim.trigger,
+              progress: progress,
             );
           },
           child: widget.child,
@@ -3491,8 +3486,36 @@ class _ParticleSystemPainter extends CustomPainter {
           canvas.drawOval(innerRect, innerPaint);
           break;
         case AnimType.snow:
-          // 雪花：绘制六角星或圆形
-          _drawSnowflake(canvas, particle.position, particle.radius, paint);
+          // 雪花：增强可见度（实心+高光）
+          final snowPaint = Paint()
+            ..color = particle.color.withOpacity(
+              particle.opacity * progress * 0.9,
+            )
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(
+            particle.position,
+            particle.radius,
+            snowPaint,
+          );
+          final highlightPaint = Paint()
+            ..color = Colors.white.withOpacity(
+              particle.opacity * progress * 0.7,
+            )
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.8;
+          canvas.drawCircle(
+            particle.position,
+            particle.radius * 0.7,
+            highlightPaint,
+          );
+          if (particle.radius >= 5) {
+            _drawSnowflake(
+              canvas,
+              particle.position,
+              particle.radius * 0.9,
+              highlightPaint,
+            );
+          }
           break;
         default:
           canvas.drawCircle(particle.position, particle.radius, paint);
@@ -3612,7 +3635,13 @@ class _ParticleSystemWidgetState extends State<_ParticleSystemWidget>
   }
 
   void _updateCurrentSize() {
-    final size = _childKey.currentContext?.size ?? context.size;
+    Size? size;
+    final renderObject = _childKey.currentContext?.findRenderObject();
+    if (renderObject is RenderBox && renderObject.hasSize) {
+      size = renderObject.size;
+    } else {
+      size = _childKey.currentContext?.size ?? context.size;
+    }
     if (size == null) return;
     if (!_isValidSize(size)) return;
     final safeSize = _getSafeSize(size);
@@ -3643,7 +3672,8 @@ class _ParticleSystemWidgetState extends State<_ParticleSystemWidget>
     final maxParticles = widget.config.maxParticles ?? 120;
     final area = math.min(size.width * size.height, maxArea);
     final count = (area * widget.config.density / 10000).round();
-    return count.clamp(6, maxParticles);
+    final minParticles = widget.config.type == AnimType.snow ? 80 : 20;
+    return count.clamp(minParticles, maxParticles);
   }
 
   void _spawnInitialParticles(Size size) {
@@ -3807,9 +3837,7 @@ class _ParticleSystemWidgetState extends State<_ParticleSystemWidget>
     if (size == null || !_isValidSize(size)) {
       return KeyedSubtree(key: _childKey, child: widget.child);
     }
-    if (widget.progress > 0 &&
-        _particles.isEmpty &&
-        widget.config.type == AnimType.fire) {
+    if (widget.progress > 0 && _particles.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final safeSize = _currentSize;
@@ -3817,6 +3845,19 @@ class _ParticleSystemWidgetState extends State<_ParticleSystemWidget>
         _spawnInitialParticles(safeSize);
         setState(() {});
       });
+    }
+    if (widget.config.type == AnimType.snow) {
+      final shouldPaint = widget.progress > 0 && _particles.isNotEmpty;
+      return CustomPaint(
+        foregroundPainter: shouldPaint
+            ? _ParticleSystemPainter(
+                particles: _particles,
+                config: widget.config,
+                progress: widget.progress,
+              )
+            : null,
+        child: KeyedSubtree(key: _childKey, child: widget.child),
+      );
     }
     return Stack(
       children: [
@@ -3970,6 +4011,93 @@ class _FireFlamePainter extends CustomPainter {
   bool shouldRepaint(_FireFlamePainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.time != time ||
+        oldDelegate.intensity != intensity ||
+        oldDelegate.color != color;
+  }
+}
+
+// ==================== 雪花绘制 ====================
+
+class _SnowFieldWidget extends StatelessWidget {
+  final Widget child;
+  final AnimationController controller;
+  final Color color;
+  final double intensity;
+  final AnimTrigger trigger;
+  final double progress;
+
+  const _SnowFieldWidget({
+    required this.child,
+    required this.controller,
+    required this.color,
+    required this.intensity,
+    required this.trigger,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (progress <= 0) return child;
+    return CustomPaint(
+      foregroundPainter: _SnowFieldPainter(
+        repaint: controller,
+        color: color,
+        intensity: intensity,
+        progress: progress,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _SnowFieldPainter extends CustomPainter {
+  final Color color;
+  final double intensity;
+  final double progress;
+
+  _SnowFieldPainter({
+    required Listenable repaint,
+    required this.color,
+    required this.intensity,
+    required this.progress,
+  }) : super(repaint: repaint);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
+    final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    final count = (16 + intensity * 24).round().clamp(16, 40);
+    final baseOpacity = (0.6 * progress).clamp(0.0, 0.6);
+
+    for (int i = 0; i < count; i++) {
+      final rand = math.Random(i * 9973);
+      final baseX = rand.nextDouble();
+      final baseY = rand.nextDouble();
+      final speed = (20 + intensity * 40) * (0.4 + rand.nextDouble());
+      final drift = (0.6 + rand.nextDouble()) * intensity * 6;
+      final radius = 1.5 + rand.nextDouble() * (2.0 + intensity * 2.5);
+      final x = (baseX * size.width) + math.sin(time * 0.8 + i) * drift;
+      final y =
+          ((baseY * size.height) + time * speed) % (size.height + 20) - 10;
+
+      final snowPaint = Paint()
+        ..color = color.withOpacity(baseOpacity)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(x, y), radius, snowPaint);
+
+      if (radius >= 3.0) {
+        final highlightPaint = Paint()
+          ..color = Colors.white.withOpacity(baseOpacity * 0.7)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8;
+        canvas.drawCircle(Offset(x, y), radius * 0.7, highlightPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SnowFieldPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
         oldDelegate.intensity != intensity ||
         oldDelegate.color != color;
   }
