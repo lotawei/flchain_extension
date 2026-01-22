@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 // ==================== 基础扩展 ====================
 
@@ -131,8 +132,12 @@ extension WidgetModifier on Widget {
       );
 
   // 手势相关
-  Widget onTap(VoidCallback onTap) =>
-      GestureDetector(onTap: onTap, child: this);
+  Widget onTap(VoidCallback onTap) => GestureDetector(
+        onTap: () {
+          onTap();
+        },
+        child: this,
+      );
 
   Widget onLongPress(VoidCallback onLongPress) =>
       GestureDetector(onLongPress: onLongPress, child: this);
@@ -838,6 +843,11 @@ class Anim {
   final double? scaleBegin;
   final double? turns;
   final double? intensity;
+  // 新效果参数
+  final Color? smokeColor;
+  final Color? fireColor;
+  final Color? snowColor;
+  final int? brokenPieces;
 
   const Anim._({
     required this.type,
@@ -850,6 +860,10 @@ class Anim {
     this.scaleBegin,
     this.turns,
     this.intensity,
+    this.smokeColor,
+    this.fireColor,
+    this.snowColor,
+    this.brokenPieces,
   });
 
   /// 淡入
@@ -1074,6 +1088,139 @@ class Anim {
         repeat: repeat,
         trigger: trigger,
       );
+
+  /// 流光效果（Shimmer）- 渐变高光扫过效果
+  /// 常用于加载状态或强调效果
+  static Anim shimmer({
+    Duration duration = const Duration(milliseconds: 1500),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.linear,
+    bool repeat = true,
+    AnimTrigger trigger = AnimTrigger.auto,
+    Offset direction = const Offset(1, 0), // 默认从上到下
+    Color highlightColor = Colors.orange,
+    double highlightOpacity = 0.2,
+    double width = 0.02, // 流光宽度（相对于总宽度）
+  }) =>
+      Anim._(
+        type: AnimType.shimmer,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        slideOffset: direction, // 复用 slideOffset 存储方向
+        scaleBegin: highlightOpacity, // 复用 scaleBegin 存储透明度
+        intensity: width, // 复用 intensity 存储宽度
+      );
+
+  /// 盐雾效果（Smoke）- 从底部向上扩散的模糊粒子效果
+  /// 适合过渡和消失动画
+  static Anim smoke({
+    Duration duration = const Duration(milliseconds: 800),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.easeOut,
+    bool repeat = false,
+    AnimTrigger trigger = AnimTrigger.auto,
+    Color smokeColor = const Color(0xFF808080), // 默认灰色
+    double intensity = 0.7, // 粒子数量和密度（0.0-1.0）
+  }) =>
+      Anim._(
+        type: AnimType.smoke,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        smokeColor: smokeColor,
+        intensity: intensity,
+      );
+
+  /// 火焰效果（Fire）- 底部向上跳动的火焰形状，颜色从红到黄渐变
+  /// 适合强调和警告场景
+  static Anim fire({
+    Duration duration = const Duration(milliseconds: 1000),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.easeInOut,
+    bool repeat = false,
+    AnimTrigger trigger = AnimTrigger.auto,
+    Color fireColor = const Color(0xFFFF6B35), // 默认橙红色
+    double intensity = 0.8, // 火焰高度和跳动幅度（0.0-1.0）
+  }) =>
+      Anim._(
+        type: AnimType.fire,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        fireColor: fireColor,
+        intensity: intensity,
+      );
+
+  /// 雪花效果（Snow）- 从顶部向下飘落的雪花粒子
+  /// 适合冬季主题和装饰效果
+  static Anim snow({
+    Duration duration = const Duration(milliseconds: 2000),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.linear,
+    bool repeat = true,
+    AnimTrigger trigger = AnimTrigger.auto,
+    Color snowColor = const Color(0xFFFFFFFF), // 默认白色
+    double intensity = 0.7, // 雪花数量和密度（0.0-1.0）
+  }) =>
+      Anim._(
+        type: AnimType.snow,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        snowColor: snowColor,
+        intensity: intensity,
+      );
+
+  /// 玻璃破碎效果（Broken）- 从中心向外扩散的裂纹，碎片分离效果
+  /// 适合错误或破坏性操作反馈
+  static Anim broken({
+    Duration duration = const Duration(milliseconds: 600),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.easeOut,
+    bool repeat = false,
+    AnimTrigger trigger = AnimTrigger.auto,
+    int brokenPieces = 10, // 碎片数量（默认8-12片）
+    double intensity = 0.9, // 破碎程度（0.0-1.0）
+  }) =>
+      Anim._(
+        type: AnimType.broken,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        brokenPieces: brokenPieces,
+        intensity: intensity,
+      );
+
+  /// 故障效果（Glitch）- RGB 通道分离、水平位移、随机噪音、模糊
+  /// 适合科技感和错误提示
+  static Anim glitch({
+    Duration duration = const Duration(milliseconds: 300),
+    Duration delay = Duration.zero,
+    Curve curve = Curves.linear,
+    bool repeat = true,
+    AnimTrigger trigger = AnimTrigger.auto,
+    double intensity = 0.6, // 故障强度（0.0-1.0）
+  }) =>
+      Anim._(
+        type: AnimType.glitch,
+        duration: duration,
+        delay: delay,
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+        intensity: intensity,
+      );
 }
 
 enum AnimType {
@@ -1087,6 +1234,12 @@ enum AnimType {
   pulse,
   blink,
   fadeSlide,
+  shimmer,
+  smoke, // 盐雾效果
+  fire, // 火焰效果
+  snow, // 雪花效果
+  broken, // 玻璃破碎
+  glitch, // 故障效果
 }
 
 // ==================== Text 专用扩展 ====================
@@ -1130,7 +1283,7 @@ extension TextModifier on Text {
         data ?? '',
         style: style,
         textAlign: textAlign,
-        maxLines: count,
+        maxLines: count == 0 ? null : count,
         overflow: overflow ?? TextOverflow.ellipsis,
       );
 
@@ -1208,7 +1361,7 @@ extension TextModifier on Text {
         data ?? '',
         style: style,
         textAlign: textAlign,
-        maxLines: maxLines ?? 1,
+        maxLines: 1, // ellipsis 总是设置 maxLines 为 1
         overflow: TextOverflow.ellipsis,
       );
 }
@@ -1235,19 +1388,53 @@ extension ImageModifier on Image {
 // ==================== Container 专用扩展 ====================
 
 extension ContainerModifier on Container {
-  Container backgroundColor(Color color) => Container(
-        key: key,
-        alignment: alignment,
-        padding: padding,
-        color: decoration == null ? color : null,
-        decoration: decoration != null
-            ? (decoration as BoxDecoration).copyWith(color: color)
-            : null,
-        margin: margin,
-        width: constraints?.maxWidth,
-        height: constraints?.maxHeight,
-        child: child,
-      );
+  Container backgroundColor(Color color) {
+    // Container 没有公开的 width/height getter，这些值在构造时会被转换为 constraints
+    // 如果原 Container 有 constraints，保留 constraints
+    // 如果原 Container 没有 constraints，尝试从 constraints 中提取 maxWidth/maxHeight
+    // 注意：当用户创建 Container(width: 100) 时，Container 内部会创建 constraints，
+    // 但 constraints 属性可能仍然是 null（如果用户没有显式传入）
+    // 在这种情况下，我们无法获取原始的 width/height 值
+
+    // 尝试从 constraints 中提取 width/height
+    // 只有当 constraints 是简单的 maxWidth/maxHeight 约束（minWidth/minHeight 为 0）
+    // 且能够同时提取 width 和 height 时，才提取；否则保留 constraints
+    double? extractedWidth;
+    double? extractedHeight;
+    BoxConstraints? remainingConstraints;
+
+    if (constraints != null) {
+      final canExtractWidth = constraints!.minWidth == 0 &&
+          constraints!.maxWidth != double.infinity;
+      final canExtractHeight = constraints!.minHeight == 0 &&
+          constraints!.maxHeight != double.infinity;
+
+      if (canExtractWidth && canExtractHeight) {
+        // 可以完全提取为 width/height
+        extractedWidth = constraints!.maxWidth;
+        extractedHeight = constraints!.maxHeight;
+        remainingConstraints = null;
+      } else {
+        // 保留 constraints（不能部分提取，因为 constraints 会覆盖 width/height）
+        remainingConstraints = constraints;
+      }
+    }
+
+    return Container(
+      key: key,
+      alignment: alignment,
+      padding: padding,
+      color: decoration == null ? color : null,
+      decoration: decoration != null
+          ? (decoration as BoxDecoration).copyWith(color: color)
+          : null,
+      margin: margin,
+      constraints: remainingConstraints,
+      width: extractedWidth,
+      height: extractedHeight,
+      child: child,
+    );
+  }
 }
 
 // ==================== List<Widget> 扩展 ====================
@@ -1819,7 +2006,13 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
                 widget.anim.type == AnimType.slide ||
                 widget.anim.type == AnimType.rotate ||
                 widget.anim.type == AnimType.pulse ||
-                widget.anim.type == AnimType.fadeSlide))
+                widget.anim.type == AnimType.fadeSlide ||
+                widget.anim.type == AnimType.shimmer ||
+                widget.anim.type == AnimType.smoke ||
+                widget.anim.type == AnimType.fire ||
+                widget.anim.type == AnimType.snow ||
+                widget.anim.type == AnimType.broken ||
+                widget.anim.type == AnimType.glitch))
         ? 1.0
         : 0.0;
     _controller = AnimationController(
@@ -1868,12 +2061,26 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
               widget.anim.type == AnimType.slide ||
               widget.anim.type == AnimType.rotate ||
               widget.anim.type == AnimType.pulse ||
-              widget.anim.type == AnimType.fadeSlide)) {
-        // 重置到 0，然后播放到 1.0
-        _controller.reset();
+              widget.anim.type == AnimType.fadeSlide ||
+              widget.anim.type == AnimType.shimmer ||
+              widget.anim.type == AnimType.smoke ||
+              widget.anim.type == AnimType.fire ||
+              widget.anim.type == AnimType.snow ||
+              widget.anim.type == AnimType.broken ||
+              widget.anim.type == AnimType.glitch)) {
+        // 对于粒子效果，需要重置到 0 然后播放，让效果从无到有
+        if (_controller.value >= 0.99) {
+          // 如果当前是结束状态，重置并播放
+          _controller.reset();
+        }
         _controller.forward().then((_) {
           if (mounted) {
-            _controller.value = 1.0; // 动画结束后保持为 1.0（正常状态）
+            // 动画结束后，延迟一下再回到初始状态，让用户看到效果
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                _controller.value = 1.0; // 动画结束后保持为 1.0（正常状态）
+              }
+            });
           }
         });
       } else {
@@ -1888,10 +2095,14 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
 
     if (widget.anim.trigger == AnimTrigger.onTap) {
       // 使用 GestureDetector 的 onTapDown 来触发动画
-      // onTapDown 不会阻止 onTap 事件传递到子组件，所以原有的 .onTap() 回调可以正常工作
-      return GestureDetector(
-        onTapDown: (_) => _playAnimation(),
-        behavior: HitTestBehavior.translucent, // 让事件传递到子组件
+      // 关键：不使用 onTap，只使用 onTapDown，这样不会阻止外层的 onTap 事件
+      // 使用 behavior: HitTestBehavior.translucent 确保事件可以穿透
+      // 使用 Listener 而不是 GestureDetector，因为 Listener 不会阻止 GestureDetector 的 onTap 事件
+      return Listener(
+        onPointerDown: (_) {
+          _playAnimation();
+        },
+        behavior: HitTestBehavior.translucent,
         child: animatedChild,
       );
     }
@@ -2142,6 +2353,334 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         return FadeTransition(
           opacity: fade,
           child: SlideTransition(position: slide, child: widget.child),
+        );
+
+      case AnimType.shimmer:
+        // 流光效果：使用 ShaderMask 配合 LinearGradient 实现
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final direction = anim.slideOffset ?? const Offset(1, 0);
+            final highlightOpacity = anim.scaleBegin ?? 0.6;
+            final width = anim.intensity ?? 0.3;
+            final highlightColor = Colors.white;
+
+            // 计算流光位置（从 -width 到 1+width）
+            // 如果是 onTap 触发且 value >= 0.99，则不显示流光（初始状态）
+            double progress;
+            if (anim.trigger == AnimTrigger.onTap &&
+                _controller.value >= 0.99) {
+              // 初始状态或动画结束，不显示流光
+              progress = -1; // 设置为 -1 表示不显示
+            } else {
+              progress = _controller.value;
+            }
+
+            // 如果 progress < 0，不显示流光效果
+            if (progress < 0) {
+              return widget.child;
+            }
+
+            final start = -width + progress * (1 + width * 2);
+            final end = start + width;
+
+            // 创建渐变遮罩
+            // 渐变从左到右：透明 -> 高光 -> 透明
+            return ShaderMask(
+              shaderCallback: (bounds) {
+                // 根据方向调整渐变
+                if (direction.dx.abs() > direction.dy.abs()) {
+                  // 水平方向（左右）
+                  return LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    stops: [
+                      math.max(0, start - 0.1),
+                      math.max(0, start),
+                      math.min(1, end),
+                      math.min(1, end + 0.1),
+                    ],
+                    colors: [
+                      Colors.transparent,
+                      highlightColor.withOpacity(highlightOpacity),
+                      highlightColor.withOpacity(highlightOpacity),
+                      Colors.transparent,
+                    ],
+                  ).createShader(bounds);
+                } else {
+                  // 垂直方向（上下）
+                  return LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [
+                      math.max(0, start - 0.1),
+                      math.max(0, start),
+                      math.min(1, end),
+                      math.min(1, end + 0.1),
+                    ],
+                    colors: [
+                      Colors.transparent,
+                      highlightColor.withOpacity(highlightOpacity),
+                      highlightColor.withOpacity(highlightOpacity),
+                      Colors.transparent,
+                    ],
+                  ).createShader(bounds);
+                }
+              },
+              blendMode: BlendMode.srcATop,
+              child: widget.child,
+            );
+          },
+          child: widget.child,
+        );
+
+      case AnimType.smoke:
+        // 烟雾效果：使用统一粒子系统，从底部边缘向上扩散
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            double progress;
+            // 对于 onTap 触发：value 从 1.0 -> 0 -> 1.0，progress 应该是 0 -> 1.0 -> 0
+            if (anim.trigger == AnimTrigger.onTap) {
+              if (_controller.value >= 0.99) {
+                progress = 0;
+              } else {
+                progress = 1.0 - _controller.value;
+              }
+            } else {
+              progress = _controller.value;
+            }
+
+            if (progress <= 0) {
+              return widget.child;
+            }
+
+            final smokeColor = anim.smokeColor ?? const Color(0xFF808080);
+            final intensity = anim.intensity ?? 0.7;
+
+            return _ParticleSystemWidget(
+              child: widget.child,
+              config: ParticleConfig(
+                type: AnimType.smoke,
+                color: smokeColor,
+                density: intensity,
+                minRadius: 3.0,
+                maxRadius: 12.0,
+                minSpeed: 30.0,
+                maxSpeed: 80.0,
+                direction: 0, // 向上
+                lifetime: 1.5,
+                spawnFromEdge: true,
+              ),
+              progress: progress,
+              controller: _controller,
+            );
+          },
+          child: widget.child,
+        );
+
+      case AnimType.fire:
+        final fireColor = anim.fireColor ?? const Color(0xFFFF6B35);
+        final intensity = anim.intensity ?? 0.8;
+        return _FireFlameWidget(
+          child: widget.child,
+          controller: _controller,
+          color: fireColor,
+          intensity: intensity,
+          trigger: anim.trigger,
+        );
+
+      case AnimType.snow:
+        // 雪花效果：使用统一粒子系统，从顶部边缘向下飘落
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            double progress;
+            // 对于 onTap 触发：value 从 1.0 -> 0 -> 1.0，progress 应该是 0 -> 1.0 -> 0
+            if (anim.trigger == AnimTrigger.onTap) {
+              if (_controller.value >= 0.99) {
+                progress = 0;
+              } else {
+                progress = 1.0 - _controller.value;
+              }
+            } else {
+              progress = _controller.value;
+            }
+
+            if (progress <= 0) {
+              return widget.child;
+            }
+
+            final snowColor = anim.snowColor ?? const Color(0xFFFFFFFF);
+            final intensity = anim.intensity ?? 0.7;
+
+            return _ParticleSystemWidget(
+              child: widget.child,
+              config: ParticleConfig(
+                type: AnimType.snow,
+                color: snowColor,
+                density: intensity,
+                minRadius: 2.0,
+                maxRadius: 6.0,
+                minSpeed: 20.0,
+                maxSpeed: 50.0,
+                direction: 1, // 向下
+                lifetime: 3.0,
+                spawnFromEdge: true,
+              ),
+              progress: progress,
+              controller: _controller,
+            );
+          },
+          child: widget.child,
+        );
+
+      case AnimType.broken:
+        // 破碎效果：轻量化渲染，避免大内存开销
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            double progress;
+            if (anim.trigger == AnimTrigger.onTap &&
+                _controller.value >= 0.99) {
+              progress = 0;
+            } else {
+              progress = _controller.value;
+            }
+
+            if (progress <= 0) {
+              return widget.child;
+            }
+
+            final pieces = anim.brokenPieces ?? 10;
+            final intensity = anim.intensity ?? 0.9;
+            final shake = math.sin(progress * math.pi * 6) * intensity * 3;
+
+            return Stack(
+              children: [
+                Transform.translate(
+                  offset: Offset(shake, 0),
+                  child: Opacity(
+                    opacity: 1.0 - progress * 0.15,
+                    child: widget.child,
+                  ),
+                ),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _BrokenPainter(
+                      progress: progress,
+                      pieces: pieces,
+                      intensity: intensity,
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _BrokenShardPainter(
+                      progress: progress,
+                      pieces: pieces,
+                      intensity: intensity,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+          child: widget.child,
+        );
+
+      case AnimType.glitch:
+        // 故障效果：RGB 通道分离、水平位移、随机噪音、模糊
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            double progress;
+            if (anim.trigger == AnimTrigger.onTap &&
+                _controller.value >= 0.99) {
+              progress = 0;
+            } else {
+              progress = anim.trigger == AnimTrigger.onTap
+                  ? 1.0 - _controller.value
+                  : _controller.value;
+            }
+
+            if (progress <= 0) {
+              return widget.child;
+            }
+
+            final intensity = anim.intensity ?? 0.6;
+            final time = DateTime.now().millisecondsSinceEpoch / 1000.0;
+            final glitchOffset =
+                (math.sin(time * 10) * intensity * 5).roundToDouble();
+
+            return RepaintBoundary(
+              child: Stack(
+                children: [
+                  // RGB 通道分离效果
+                  Positioned.fill(
+                    child: Transform.translate(
+                      offset: Offset(-glitchOffset * progress, 0),
+                      child: ColorFiltered(
+                        colorFilter: const ColorFilter.matrix([
+                          1, 0, 0, 0, 0, // R
+                          0, 0, 0, 0, 0, // G
+                          0, 0, 0, 0, 0, // B
+                          0, 0, 0, 1, 0, // A
+                        ]),
+                        child: Opacity(
+                          opacity: progress * intensity * 0.5,
+                          child: widget.child,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Transform.translate(
+                      offset: Offset(glitchOffset * progress, 0),
+                      child: ColorFiltered(
+                        colorFilter: const ColorFilter.matrix([
+                          0, 0, 0, 0, 0, // R
+                          0, 1, 0, 0, 0, // G
+                          0, 0, 1, 0, 0, // B
+                          0, 0, 0, 1, 0, // A
+                        ]),
+                        child: Opacity(
+                          opacity: progress * intensity * 0.5,
+                          child: widget.child,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // 原始内容
+                  widget.child,
+                  // 噪音层
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _GlitchPainter(
+                        progress: progress,
+                        intensity: intensity,
+                        time: time,
+                      ),
+                    ),
+                  ),
+                  // 模糊效果
+                  if (progress > 0.5)
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: progress * intensity * 2,
+                          sigmaY: progress * intensity * 2,
+                        ),
+                        child: Container(
+                          color: Colors.transparent,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+          child: widget.child,
         );
     }
   }
@@ -2593,3 +3132,830 @@ extension IconTextButtonCreator on Object {
         border: border,
       );
 }
+
+// ==================== 高级动画效果 Painter ====================
+class _BrokenPainter extends CustomPainter {
+  final double progress;
+  final int pieces;
+  final double intensity;
+  final List<Path> crackPaths;
+
+  _BrokenPainter({
+    required this.progress,
+    required this.pieces,
+    required this.intensity,
+  }) : crackPaths = _generateCrackPaths(pieces);
+
+  static List<Path> _generateCrackPaths(int pieces) {
+    final paths = <Path>[];
+    final random = math.Random(42); // 固定种子以保证一致性
+
+    for (int i = 0; i < pieces; i++) {
+      final angle = (i / pieces) * math.pi * 2;
+      final path = Path();
+      path.moveTo(0.5, 0.5); // 中心点
+      final distance = 0.3 + random.nextDouble() * 0.4;
+      final endX = 0.5 + math.cos(angle) * distance;
+      final endY = 0.5 + math.sin(angle) * distance;
+      path.lineTo(endX, endY);
+      paths.add(path);
+    }
+
+    return paths;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.8 * progress)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final matrix = Matrix4.identity()..scale(size.width, size.height);
+
+    for (final path in crackPaths) {
+      final transformedPath = path.transform(matrix.storage);
+      canvas.drawPath(transformedPath, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BrokenPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
+
+/// 玻璃碎片效果绘制器
+class _BrokenShardPainter extends CustomPainter {
+  final double progress;
+  final int pieces;
+  final double intensity;
+
+  _BrokenShardPainter({
+    required this.progress,
+    required this.pieces,
+    required this.intensity,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0.2) return;
+    final random = math.Random(24);
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = math.min(size.width, size.height) * 0.55;
+    final shardCount = pieces.clamp(8, 20);
+    final spread = (progress * intensity).clamp(0.0, 1.0);
+
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.25 * spread)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < shardCount; i++) {
+      final angle = (i / shardCount) * math.pi * 2 + random.nextDouble() * 0.3;
+      final radius = maxRadius * (0.35 + random.nextDouble() * 0.65) * spread;
+      final shardSize = (6 + random.nextDouble() * 10) * (0.6 + spread);
+      final direction = Offset(math.cos(angle), math.sin(angle));
+      final extra = (12 + random.nextDouble() * 18) * spread;
+      final shardCenter = center + direction * radius + direction * extra;
+      final wobble = math.sin(progress * math.pi * 6 + i) * 0.12;
+      final rotate = (random.nextBool() ? 1 : -1) *
+              (0.6 + random.nextDouble() * 0.6) *
+              spread +
+          wobble;
+      final path = Path()
+        ..moveTo(0, -shardSize)
+        ..lineTo(-shardSize * 0.6, shardSize * 0.6)
+        ..lineTo(shardSize * 0.6, shardSize * 0.6)
+        ..close();
+      canvas.save();
+      canvas.translate(shardCenter.dx, shardCenter.dy);
+      canvas.rotate(rotate);
+      canvas.drawPath(path, paint);
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BrokenShardPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.pieces != pieces ||
+        oldDelegate.intensity != intensity;
+  }
+}
+
+/// 故障效果绘制器
+class _GlitchPainter extends CustomPainter {
+  final double progress;
+  final double intensity;
+  final double time;
+  final math.Random random;
+
+  _GlitchPainter({
+    required this.progress,
+    required this.intensity,
+    required this.time,
+  }) : random = math.Random((time * 1000).round());
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.3 * intensity * progress)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    // 绘制随机噪音线条
+    final lineCount = (5 * intensity).round();
+    for (int i = 0; i < lineCount; i++) {
+      final y = size.height * random.nextDouble();
+      final startX = size.width * random.nextDouble() * 0.3;
+      final endX = size.width * (0.7 + random.nextDouble() * 0.3);
+      canvas.drawLine(
+        Offset(startX, y),
+        Offset(endX, y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GlitchPainter oldDelegate) {
+    return (oldDelegate.time - time).abs() > 0.05 ||
+        oldDelegate.progress != progress;
+  }
+}
+
+// ==================== 统一粒子系统 ====================
+
+/// 粒子配置
+class ParticleConfig {
+  /// 粒子类型（smoke/fire/snow）
+  final AnimType type;
+
+  /// 粒子颜色
+  final Color color;
+
+  /// 粒子数量（0.0-1.0，会根据容器大小自动计算）
+  final double density;
+
+  /// 粒子大小范围（最小-最大半径）
+  final double minRadius;
+  final double maxRadius;
+
+  /// 粒子速度范围
+  final double minSpeed;
+  final double maxSpeed;
+
+  /// 粒子生成位置（0.0=底部/左侧，1.0=顶部/右侧）
+  final double spawnPosition;
+
+  /// 粒子运动方向（0=向上，1=向下，2=向左，3=向右）
+  final int direction;
+
+  /// 粒子生命周期（秒）
+  final double lifetime;
+
+  /// 是否从边缘生成（true=边缘，false=随机位置）
+  final bool spawnFromEdge;
+
+  /// 最大粒子数量（防止超大尺寸导致内存暴涨）
+  final int? maxParticles;
+
+  /// 粒子计算的最大面积（逻辑像素平方）
+  final double? maxArea;
+
+  const ParticleConfig({
+    required this.type,
+    required this.color,
+    this.density = 0.7,
+    this.minRadius = 2.0,
+    this.maxRadius = 8.0,
+    this.minSpeed = 20.0,
+    this.maxSpeed = 60.0,
+    this.spawnPosition = 0.0,
+    this.direction = 0,
+    this.lifetime = 2.0,
+    this.spawnFromEdge = true,
+    this.maxParticles = 120,
+    this.maxArea = 200000,
+  });
+}
+
+/// 单个粒子
+class Particle {
+  /// 当前位置
+  Offset position;
+
+  /// 速度（像素/秒）
+  Offset velocity;
+
+  /// 半径
+  double radius;
+
+  /// 颜色
+  Color color;
+
+  /// 生命周期（0.0-1.0）
+  double life;
+
+  /// 最大生命周期（秒）
+  double maxLife;
+
+  /// 透明度
+  double opacity;
+
+  Particle({
+    required this.position,
+    required this.velocity,
+    required this.radius,
+    required this.color,
+    required this.maxLife,
+  })  : life = 1.0,
+        opacity = 1.0;
+
+  /// 更新粒子状态
+  void update(double dt) {
+    position += velocity * dt;
+    life -= dt / maxLife;
+    if (life < 0) life = 0;
+    // 透明度随生命周期衰减
+    opacity = life;
+  }
+
+  /// 是否已死亡
+  bool get isDead => life <= 0;
+}
+
+/// 粒子系统绘制器
+class _ParticleSystemPainter extends CustomPainter {
+  final List<Particle> particles;
+  final ParticleConfig config;
+  final double progress;
+
+  _ParticleSystemPainter({
+    required this.particles,
+    required this.config,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    if (config.type == AnimType.fire) {
+      final glowHeight = size.height * 0.35;
+      final glowRect = Rect.fromLTWH(
+        0,
+        size.height - glowHeight,
+        size.width,
+        glowHeight,
+      );
+      final glowPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            Colors.orangeAccent.withOpacity(0.35 * progress),
+            Colors.redAccent.withOpacity(0.15 * progress),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 0.6, 1.0],
+        ).createShader(glowRect);
+      canvas.drawRect(glowRect, glowPaint);
+    }
+
+    if (particles.isEmpty) {
+      return;
+    }
+
+    for (final particle in particles) {
+      if (particle.isDead) continue;
+
+      final paint = Paint()
+        ..color = particle.color.withOpacity(
+          particle.opacity * progress * 0.8,
+        )
+        ..style = PaintingStyle.fill;
+
+      // 根据类型绘制不同形状
+      switch (config.type) {
+        case AnimType.smoke:
+          // 烟雾：绘制模糊圆形
+          canvas.drawCircle(
+            particle.position,
+            particle.radius,
+            paint..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0),
+          );
+          break;
+        case AnimType.fire:
+          // 火焰：使用双层椭圆提高可见度
+          final flameOpacity =
+              (particle.opacity * progress * 1.4).clamp(0.0, 1.0);
+          final outerPaint = Paint()
+            ..color = particle.color.withOpacity(flameOpacity)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
+          final outerRect = Rect.fromCenter(
+            center: particle.position,
+            width: particle.radius * 1.4,
+            height: particle.radius * 2.2,
+          );
+          canvas.drawOval(outerRect, outerPaint);
+          final innerPaint = Paint()
+            ..color = Colors.yellowAccent.withOpacity(flameOpacity * 0.8);
+          final innerRect = Rect.fromCenter(
+            center: particle.position.translate(0, -particle.radius * 0.3),
+            width: particle.radius * 0.7,
+            height: particle.radius * 1.2,
+          );
+          canvas.drawOval(innerRect, innerPaint);
+          break;
+        case AnimType.snow:
+          // 雪花：绘制六角星或圆形
+          _drawSnowflake(canvas, particle.position, particle.radius, paint);
+          break;
+        default:
+          canvas.drawCircle(particle.position, particle.radius, paint);
+      }
+    }
+  }
+
+  /// 绘制雪花（简单的六角星）
+  void _drawSnowflake(
+      Canvas canvas, Offset center, double radius, Paint paint) {
+    final path = Path();
+    const angle = math.pi / 3; // 60度
+    for (int i = 0; i < 6; i++) {
+      final x = center.dx + radius * math.cos(i * angle);
+      final y = center.dy + radius * math.sin(i * angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+    // 中心点
+    canvas.drawCircle(center, radius * 0.3, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ParticleSystemPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.particles.length != particles.length;
+  }
+}
+
+/// 粒子系统 Widget
+class _ParticleSystemWidget extends StatefulWidget {
+  final Widget child;
+  final ParticleConfig config;
+  final double progress;
+  final AnimationController controller;
+
+  const _ParticleSystemWidget({
+    required this.child,
+    required this.config,
+    required this.progress,
+    required this.controller,
+  });
+
+  @override
+  State<_ParticleSystemWidget> createState() => _ParticleSystemWidgetState();
+}
+
+class _ParticleSystemWidgetState extends State<_ParticleSystemWidget>
+    with SingleTickerProviderStateMixin {
+  late List<Particle> _particles;
+  late final _ticker = createTicker(_onTick);
+  double _lastTime = 0;
+  Size? _currentSize;
+  final GlobalKey _childKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker.start();
+    _initializeParticles();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateCurrentSize();
+    });
+  }
+
+  @override
+  void didUpdateWidget(_ParticleSystemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当 progress 从 0 变为 > 0 时，立即生成粒子
+    if (oldWidget.progress == 0 &&
+        widget.progress > 0 &&
+        _currentSize != null) {
+      final size = _currentSize!;
+      if (size.width.isFinite &&
+          size.height.isFinite &&
+          size.width > 0 &&
+          size.height > 0) {
+        final targetCount = _calculateTargetCount(size);
+        // 立即生成初始粒子
+        _particles.clear();
+        for (int i = 0; i < targetCount.clamp(0, 50); i++) {
+          _particles.add(_createParticle(size));
+        }
+        setState(() {});
+      }
+    }
+    // 配置变化时重新初始化
+    if (oldWidget.config != widget.config && widget.progress > 0) {
+      _initializeParticles();
+    }
+    // 当 progress 从 > 0 变为 0 时，清理粒子
+    if (oldWidget.progress > 0 && widget.progress == 0) {
+      _particles.clear();
+      setState(() {});
+    }
+    if (oldWidget.child != widget.child) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateCurrentSize();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  void _initializeParticles() {
+    _particles = [];
+    _lastTime = 0;
+  }
+
+  void _updateCurrentSize() {
+    final size = _childKey.currentContext?.size ?? context.size;
+    if (size == null) return;
+    if (!_isValidSize(size)) return;
+    final safeSize = _getSafeSize(size);
+    final isChanged = _currentSize != safeSize;
+    _currentSize = safeSize;
+    if (isChanged && widget.progress > 0 && _particles.isEmpty) {
+      _spawnInitialParticles(safeSize);
+      if (mounted) setState(() {});
+    }
+  }
+
+  bool _isValidSize(Size size) {
+    if (!size.width.isFinite || !size.height.isFinite) return false;
+    if (size.width <= 0 || size.height <= 0) return false;
+    return true;
+  }
+
+  Size _getSafeSize(Size size) {
+    final maxArea = widget.config.maxArea ?? 200000;
+    final area = size.width * size.height;
+    if (area <= maxArea) return size;
+    final scale = math.sqrt(maxArea / area);
+    return Size(size.width * scale, size.height * scale);
+  }
+
+  int _calculateTargetCount(Size size) {
+    final maxArea = widget.config.maxArea ?? 200000;
+    final maxParticles = widget.config.maxParticles ?? 120;
+    final area = math.min(size.width * size.height, maxArea);
+    final count = (area * widget.config.density / 10000).round();
+    return count.clamp(6, maxParticles);
+  }
+
+  void _spawnInitialParticles(Size size) {
+    final targetCount = _calculateTargetCount(size);
+    for (int i = 0; i < targetCount.clamp(0, 30); i++) {
+      _particles.add(_createParticle(size));
+    }
+  }
+
+  void _onTick(Duration elapsed) {
+    // 粒子系统更新逻辑
+    if (!mounted) return;
+
+    final currentTime = elapsed.inMilliseconds / 1000.0;
+    final dt = currentTime - _lastTime;
+    _lastTime = currentTime;
+
+    // 如果 progress <= 0 或 size 未设置，清理粒子但不更新
+    if (widget.progress <= 0 || _currentSize == null) {
+      if (_currentSize == null) _updateCurrentSize();
+      if (_particles.isNotEmpty) {
+        _particles.clear();
+        setState(() {});
+      }
+      return;
+    }
+
+    final size = _currentSize!;
+    final safeSize = _getSafeSize(size);
+
+    // 检查 size 是否有效（不是 Infinity 或 NaN）
+    if (!size.width.isFinite ||
+        !size.height.isFinite ||
+        size.width <= 0 ||
+        size.height <= 0) {
+      return;
+    }
+
+    if (dt <= 0) return;
+
+    final targetCount = _calculateTargetCount(safeSize);
+
+    // 更新现有粒子
+    _particles.removeWhere((p) {
+      p.update(dt);
+      if (widget.config.type == AnimType.fire) {
+        final flutter = math.sin((currentTime + p.position.dy) * 10) * 6;
+        p.position = p.position.translate(flutter * dt, 0);
+      }
+      return p.isDead || _isOutOfBounds(p.position, size);
+    });
+
+    // 生成新粒子直到达到目标数量
+    while (_particles.length < targetCount) {
+      _particles.add(_createParticle(safeSize));
+    }
+
+    // 触发重建以显示粒子
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Particle _createParticle(Size size) {
+    final random = math.Random();
+    Offset spawnPos;
+    Offset velocity;
+
+    // 根据配置生成位置和速度
+    if (widget.config.spawnFromEdge) {
+      // 从边缘生成
+      switch (widget.config.direction) {
+        case 0: // 向上
+          spawnPos = Offset(
+            size.width * (0.15 + random.nextDouble() * 0.7),
+            size.height * (0.6 + random.nextDouble() * 0.35),
+          );
+          velocity = Offset(
+            (random.nextDouble() - 0.5) * 20,
+            -widget.config.minSpeed -
+                random.nextDouble() *
+                    (widget.config.maxSpeed - widget.config.minSpeed),
+          );
+          break;
+        case 1: // 向下
+          spawnPos = Offset(
+            size.width * (0.2 + random.nextDouble() * 0.6),
+            size.height * (0.0 + random.nextDouble() * 0.2),
+          );
+          velocity = Offset(
+            (random.nextDouble() - 0.5) * 20,
+            widget.config.minSpeed +
+                random.nextDouble() *
+                    (widget.config.maxSpeed - widget.config.minSpeed),
+          );
+          break;
+        case 2: // 向左
+          spawnPos = Offset(
+            size.width * (0.8 + random.nextDouble() * 0.2),
+            size.height * (0.2 + random.nextDouble() * 0.6),
+          );
+          velocity = Offset(
+            -widget.config.minSpeed -
+                random.nextDouble() *
+                    (widget.config.maxSpeed - widget.config.minSpeed),
+            (random.nextDouble() - 0.5) * 20,
+          );
+          break;
+        case 3: // 向右
+          spawnPos = Offset(
+            size.width * (0.0 + random.nextDouble() * 0.2),
+            size.height * (0.2 + random.nextDouble() * 0.6),
+          );
+          velocity = Offset(
+            widget.config.minSpeed +
+                random.nextDouble() *
+                    (widget.config.maxSpeed - widget.config.minSpeed),
+            (random.nextDouble() - 0.5) * 20,
+          );
+          break;
+        default:
+          spawnPos = Offset(size.width / 2, size.height / 2);
+          velocity = Offset.zero;
+      }
+    } else {
+      // 随机位置生成
+      spawnPos = Offset(
+        size.width * random.nextDouble(),
+        size.height * random.nextDouble(),
+      );
+      velocity = Offset(
+        (random.nextDouble() - 0.5) * widget.config.maxSpeed,
+        (random.nextDouble() - 0.5) * widget.config.maxSpeed,
+      );
+    }
+
+    return Particle(
+      position: spawnPos,
+      velocity: velocity,
+      radius: widget.config.minRadius +
+          random.nextDouble() *
+              (widget.config.maxRadius - widget.config.minRadius),
+      color: widget.config.color,
+      maxLife: widget.config.lifetime,
+    );
+  }
+
+  bool _isOutOfBounds(Offset pos, Size size) {
+    return pos.dx < -50 ||
+        pos.dx > size.width + 50 ||
+        pos.dy < -50 ||
+        pos.dy > size.height + 50;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateCurrentSize();
+    });
+    final size = _currentSize;
+    if (size == null || !_isValidSize(size)) {
+      return KeyedSubtree(key: _childKey, child: widget.child);
+    }
+    if (widget.progress > 0 &&
+        _particles.isEmpty &&
+        widget.config.type == AnimType.fire) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final safeSize = _currentSize;
+        if (safeSize == null || !_isValidSize(safeSize)) return;
+        _spawnInitialParticles(safeSize);
+        setState(() {});
+      });
+    }
+    return Stack(
+      children: [
+        KeyedSubtree(key: _childKey, child: widget.child),
+        if (widget.progress > 0 &&
+            (_particles.isNotEmpty || widget.config.type == AnimType.fire))
+          ClipRect(
+            child: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: CustomPaint(
+                painter: _ParticleSystemPainter(
+                  particles: _particles,
+                  config: widget.config,
+                  progress: widget.progress,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ==================== 火焰绘制 ====================
+
+class _FireFlameWidget extends StatelessWidget {
+  final Widget child;
+  final AnimationController controller;
+  final Color color;
+  final double intensity;
+  final AnimTrigger trigger;
+
+  const _FireFlameWidget({
+    required this.child,
+    required this.controller,
+    required this.color,
+    required this.intensity,
+    required this.trigger,
+  });
+
+  double _calculateProgress(double value) {
+    if (trigger == AnimTrigger.onTap) {
+      if (value >= 0.99) return 0;
+      return math.sin(value * math.pi);
+    }
+    return value;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final progress = _calculateProgress(controller.value);
+        if (progress <= 0) return child;
+        return CustomPaint(
+          foregroundPainter: _FireFlamePainter(
+            progress: progress,
+            color: color,
+            intensity: intensity,
+            time: controller.value,
+          ),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _FireFlamePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final double intensity;
+  final double time;
+
+  const _FireFlamePainter({
+    required this.progress,
+    required this.color,
+    required this.intensity,
+    required this.time,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.width <= 0 || size.height <= 0) return;
+    final baseHeight = size.height * (0.2 + intensity * 0.15);
+    final maxHeight = size.height * (0.45 + intensity * 0.25);
+    final flameCount = (10 + intensity * 10).round().clamp(10, 20);
+    final step = size.width / (flameCount - 1);
+    final phase = time * math.pi * 2;
+
+    final outerPath = Path()..moveTo(0, size.height);
+    for (int i = 0; i < flameCount; i++) {
+      final x = step * i;
+      final wave = math.sin(phase * 1.6 + i * 0.9);
+      final jitter = math.sin(phase * 2.3 + i * 1.7);
+      final height = baseHeight +
+          (maxHeight - baseHeight) * (0.6 + 0.4 * wave) +
+          jitter * (maxHeight * 0.08);
+      final y = size.height - height * progress;
+      outerPath.lineTo(x, y);
+    }
+    outerPath
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    final outerPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        colors: [
+          color.withOpacity(0.85 * progress),
+          Colors.deepOrangeAccent.withOpacity(0.55 * progress),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.7, 1.0],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(outerPath, outerPaint);
+
+    final innerPath = Path()..moveTo(0, size.height);
+    for (int i = 0; i < flameCount; i++) {
+      final x = step * i;
+      final wave = math.sin(phase * 2.1 + i * 1.1);
+      final height = baseHeight * 0.6 +
+          (maxHeight * 0.75 - baseHeight * 0.6) * (0.6 + 0.4 * wave);
+      final y = size.height - height * progress;
+      innerPath.lineTo(x, y);
+    }
+    innerPath
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    final innerPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        colors: [
+          Colors.yellowAccent.withOpacity(0.8 * progress),
+          Colors.orangeAccent.withOpacity(0.5 * progress),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.6, 1.0],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(innerPath, innerPaint);
+  }
+
+  @override
+  bool shouldRepaint(_FireFlamePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.time != time ||
+        oldDelegate.intensity != intensity ||
+        oldDelegate.color != color;
+  }
+}
+
+//玻璃容器效果
+class LiqContainer {}

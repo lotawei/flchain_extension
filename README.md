@@ -1,5 +1,8 @@
 # flchain_extension
 
+与传统flutter 不一样的点在于
+用先子后父的方式去构建而不是必须先写父再写子
+
 Flutter 链式调用扩展库，提供简洁优雅的 Widget 修饰器和动画效果。
 
 ## 安装
@@ -9,7 +12,10 @@ dependencies:
   flchain_extension:
     git:
       url: https://github.com/lotawei/flchain_extension.git
+or 
+flutter pub add flchain_extension
 ```
+
 
 ## 使用
 
@@ -90,6 +96,28 @@ widget.animate(Anim.blink(repeat: true))
 
 // 组合动画
 widget.animate(Anim.fadeSlide())
+
+// 高级视觉效果
+widget.animate(Anim.smoke(
+  smokeColor: Colors.grey,
+  intensity: 0.7,
+))  // 盐雾效果，适合过渡和消失动画
+
+widget.animate(Anim.fire(
+  fireColor: Colors.orange,
+  intensity: 0.8,
+  repeat: true,
+))  // 火焰效果，适合强调和警告场景
+
+widget.animate(Anim.broken(
+  brokenPieces: 10,
+  intensity: 0.9,
+))  // 玻璃破碎效果，适合错误反馈
+
+widget.animate(Anim.glitch(
+  intensity: 0.6,
+  repeat: true,
+))  // 故障效果，适合科技感和错误提示
 ```
 
 ### 点击动画
@@ -202,3 +230,6 @@ class MyWidget extends StatelessWidget {
 ## License
 
 MIT
+
+
+## 这里补充下skills的
