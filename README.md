@@ -5,7 +5,7 @@
 
 Flutter 链式调用扩展库，提供简洁优雅的 Widget 修饰器和动画效果。
 
-
+![] (https://github.com/lotawei/flchain_extension/blob/main/xiaoguo.png)
 ## 安装
 
 ```yaml
