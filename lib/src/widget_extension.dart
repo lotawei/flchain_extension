@@ -3208,14 +3208,21 @@ class _BrokenShardPainter extends CustomPainter {
     final shardCount = pieces.clamp(8, 20);
     final spread = (progress * intensity).clamp(0.0, 1.0);
 
+    final baseOpacity = (0.35 * spread).clamp(0.0, 0.35);
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.25 * spread)
+      ..color = Colors.white.withOpacity(baseOpacity)
       ..style = PaintingStyle.fill;
+    final edgePaint = Paint()
+      ..color = Colors.white.withOpacity(baseOpacity * 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
 
     for (int i = 0; i < shardCount; i++) {
       final angle = (i / shardCount) * math.pi * 2 + random.nextDouble() * 0.3;
       final radius = maxRadius * (0.35 + random.nextDouble() * 0.65) * spread;
-      final shardSize = (6 + random.nextDouble() * 10) * (0.6 + spread);
+      final shrink = (1.0 - progress).clamp(0.3, 1.0);
+      final shardSize =
+          (6 + random.nextDouble() * 10) * (0.6 + spread) * shrink;
       final direction = Offset(math.cos(angle), math.sin(angle));
       final extra = (12 + random.nextDouble() * 18) * spread;
       final shardCenter = center + direction * radius + direction * extra;
@@ -3232,7 +3239,18 @@ class _BrokenShardPainter extends CustomPainter {
       canvas.save();
       canvas.translate(shardCenter.dx, shardCenter.dy);
       canvas.rotate(rotate);
+      final fadeOpacity = (baseOpacity * (1.0 - progress)).clamp(0.0, 0.35);
+      paint.color = paint.color.withOpacity(fadeOpacity);
+      edgePaint.color = edgePaint.color.withOpacity(fadeOpacity * 0.8);
+      final trailPaint = Paint()
+        ..color = paint.color.withOpacity(fadeOpacity * 0.5)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+      canvas.drawPath(
+        path.shift(Offset(-direction.dx * 2, -direction.dy * 2)),
+        trailPaint,
+      );
       canvas.drawPath(path, paint);
+      canvas.drawPath(path, edgePaint);
       canvas.restore();
     }
   }
