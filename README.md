@@ -98,6 +98,56 @@ widget.animate(Anim.blink(repeat: true))
 // 组合动画
 widget.animate(Anim.fadeSlide())
 
+// 组合序列动画
+final sequence = AnimSequence(
+  duration: const Duration(milliseconds: 800),
+  steps: [
+    AnimStep.fadeIn(interval: const Interval(0.0, 0.3)),
+    AnimStep.slide(
+      interval: const Interval(0.1, 0.6),
+      begin: const Offset(0, 0.2),
+    ),
+    AnimStep.scale(
+      interval: const Interval(0.6, 1.0),
+      begin: 0.98,
+      end: 1.0,
+    ),
+  ],
+);
+widget.animateSequence(sequence);
+
+// 并行动画（同一时间片叠加）
+widget.animateSequence(
+  AnimSequence(
+    duration: const Duration(milliseconds: 500),
+    steps: [
+      AnimStep.fadeIn(interval: const Interval(0.0, 1.0)),
+      AnimStep.scale(interval: const Interval(0.0, 1.0), begin: 0.9, end: 1.0),
+      AnimStep.rotate(
+        interval: const Interval(0.0, 1.0),
+        begin: 0.0,
+        end: 0.05,
+      ),
+    ],
+  ),
+);
+
+// 交错动画（列表按索引延迟）
+final items = List.generate(6, (index) {
+  final staggerSequence = AnimSequence.stagger(
+    index: index,
+    stagger: const Duration(milliseconds: 60),
+    steps: [
+      AnimStep.fadeIn(interval: const Interval(0.0, 0.6)),
+      AnimStep.slide(
+        interval: const Interval(0.0, 0.6),
+        begin: const Offset(0, 0.1),
+      ),
+    ],
+  );
+  return buildItem(index).animateSequence(staggerSequence);
+});
+
 // 高级视觉效果
 widget.animate(Anim.smoke(
   smokeColor: Colors.grey,

@@ -815,6 +815,13 @@ extension WidgetModifier on Widget {
   /// widget.animate(Anim.pulse(repeat: true))
   /// ```
   Widget animate(Anim anim) => _UnifiedAnimWidget(anim: anim, child: this);
+
+  /// 组合序列动画接口
+  /// ```dart
+  /// widget.animateSequence(AnimSequence(steps: [...]))
+  /// ```
+  Widget animateSequence(AnimSequence sequence) =>
+      _SequenceAnimWidget(sequence: sequence, child: this);
 }
 
 // ==================== 动画配置 ====================
@@ -1240,6 +1247,164 @@ enum AnimType {
   snow, // 雪花效果
   broken, // 玻璃破碎
   glitch, // 故障效果
+}
+
+// ==================== 组合序列动画配置 ====================
+
+enum AnimStepType {
+  fade,
+  scale,
+  slide,
+  rotate,
+}
+
+class AnimStep {
+  final AnimStepType type;
+  final Interval interval;
+  final Curve? curve;
+  final double? beginOpacity;
+  final double? endOpacity;
+  final double? beginScale;
+  final double? endScale;
+  final Offset? beginOffset;
+  final Offset? endOffset;
+  final double? beginTurns;
+  final double? endTurns;
+
+  AnimStep._({
+    required this.type,
+    required this.interval,
+    this.curve,
+    this.beginOpacity,
+    this.endOpacity,
+    this.beginScale,
+    this.endScale,
+    this.beginOffset,
+    this.endOffset,
+    this.beginTurns,
+    this.endTurns,
+  }) : assert(
+          interval.begin >= 0 &&
+              interval.end <= 1 &&
+              interval.begin < interval.end,
+          'interval 必须在 0-1 之间且 begin < end',
+        );
+
+  static AnimStep fadeIn({
+    required Interval interval,
+    Curve? curve,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.fade,
+        interval: interval,
+        curve: curve,
+        beginOpacity: 0.0,
+        endOpacity: 1.0,
+      );
+
+  static AnimStep fadeOut({
+    required Interval interval,
+    Curve? curve,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.fade,
+        interval: interval,
+        curve: curve,
+        beginOpacity: 1.0,
+        endOpacity: 0.0,
+      );
+
+  static AnimStep fade({
+    required Interval interval,
+    Curve? curve,
+    double begin = 0.0,
+    double end = 1.0,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.fade,
+        interval: interval,
+        curve: curve,
+        beginOpacity: begin,
+        endOpacity: end,
+      );
+
+  static AnimStep scale({
+    required Interval interval,
+    Curve? curve,
+    double begin = 0.9,
+    double end = 1.0,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.scale,
+        interval: interval,
+        curve: curve,
+        beginScale: begin,
+        endScale: end,
+      );
+
+  static AnimStep slide({
+    required Interval interval,
+    Curve? curve,
+    Offset begin = const Offset(0, 0.1),
+    Offset end = Offset.zero,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.slide,
+        interval: interval,
+        curve: curve,
+        beginOffset: begin,
+        endOffset: end,
+      );
+
+  static AnimStep rotate({
+    required Interval interval,
+    Curve? curve,
+    double begin = 0.0,
+    double end = 1.0,
+  }) =>
+      AnimStep._(
+        type: AnimStepType.rotate,
+        interval: interval,
+        curve: curve,
+        beginTurns: begin,
+        endTurns: end,
+      );
+}
+
+class AnimSequence {
+  final List<AnimStep> steps;
+  final Duration duration;
+  final Duration delay;
+  final Curve curve;
+  final bool repeat;
+  final AnimTrigger trigger;
+
+  AnimSequence({
+    required this.steps,
+    this.duration = const Duration(milliseconds: 600),
+    this.delay = Duration.zero,
+    this.curve = Curves.easeInOut,
+    this.repeat = false,
+    this.trigger = AnimTrigger.auto,
+  }) : assert(steps.length > 0, 'steps 不能为空');
+
+  factory AnimSequence.stagger({
+    required int index,
+    required Duration stagger,
+    required List<AnimStep> steps,
+    Duration duration = const Duration(milliseconds: 600),
+    Curve curve = Curves.easeInOut,
+    bool repeat = false,
+    AnimTrigger trigger = AnimTrigger.auto,
+  }) =>
+      AnimSequence(
+        steps: steps,
+        duration: duration,
+        delay: Duration(milliseconds: stagger.inMilliseconds * index),
+        curve: curve,
+        repeat: repeat,
+        trigger: trigger,
+      );
 }
 
 // ==================== Text 专用扩展 ====================
@@ -2679,6 +2844,194 @@ class _UnifiedAnimWidgetState extends State<_UnifiedAnimWidget>
         );
     }
   }
+}
+
+// ==================== 组合序列动画 Widget ====================
+
+class _SequenceAnimWidget extends StatefulWidget {
+  final AnimSequence sequence;
+  final Widget child;
+  const _SequenceAnimWidget({required this.sequence, required this.child});
+  @override
+  State<_SequenceAnimWidget> createState() => _SequenceAnimWidgetState();
+}
+
+class _SequenceAnimWidgetState extends State<_SequenceAnimWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late List<_SequenceStepAnimation> _stepAnimations;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialValue =
+        widget.sequence.trigger == AnimTrigger.onTap ? 1.0 : 0.0;
+    _controller = AnimationController(
+      duration: widget.sequence.duration,
+      vsync: this,
+      value: initialValue,
+    );
+    _stepAnimations = _buildStepAnimations(widget.sequence);
+    if (widget.sequence.trigger == AnimTrigger.auto) {
+      Future.delayed(widget.sequence.delay, () {
+        if (!mounted) return;
+        if (widget.sequence.repeat) {
+          _controller.repeat();
+        } else {
+          _controller.forward();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _playAnimation() {
+    if (widget.sequence.repeat) {
+      if (_controller.isAnimating) {
+        _controller.stop();
+        _controller.value = 1.0;
+        return;
+      }
+      _controller.repeat();
+      return;
+    }
+    _controller.forward(from: 0).then((_) {
+      if (!mounted) return;
+      if (widget.sequence.trigger != AnimTrigger.onTap) return;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) _controller.value = 1.0;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final animatedChild = _buildAnimatedChild();
+    if (widget.sequence.trigger == AnimTrigger.onTap) {
+      return Listener(
+        onPointerDown: (_) {
+          _playAnimation();
+        },
+        behavior: HitTestBehavior.translucent,
+        child: animatedChild,
+      );
+    }
+    return animatedChild;
+  }
+
+  Widget _buildAnimatedChild() => AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          double opacity = 1.0;
+          double scale = 1.0;
+          Offset offset = Offset.zero;
+          double turns = 0.0;
+          for (final step in _stepAnimations) {
+            if (step.opacityAnimation != null) {
+              opacity = step.opacityAnimation!.value;
+            }
+            if (step.scaleAnimation != null) {
+              scale = step.scaleAnimation!.value;
+            }
+            if (step.slideAnimation != null) {
+              offset = step.slideAnimation!.value;
+            }
+            if (step.rotateAnimation != null) {
+              turns = step.rotateAnimation!.value;
+            }
+          }
+          Widget result = child ?? const SizedBox.shrink();
+          if (opacity != 1.0) {
+            result = Opacity(opacity: opacity, child: result);
+          }
+          if (offset != Offset.zero) {
+            result = FractionalTranslation(translation: offset, child: result);
+          }
+          if (scale != 1.0) {
+            result = Transform.scale(scale: scale, child: result);
+          }
+          if (turns != 0.0) {
+            result =
+                Transform.rotate(angle: turns * 2 * math.pi, child: result);
+          }
+          return result;
+        },
+        child: widget.child,
+      );
+
+  List<_SequenceStepAnimation> _buildStepAnimations(AnimSequence sequence) {
+    final items = <_SequenceStepAnimation>[];
+    for (final step in sequence.steps) {
+      final interval = Interval(
+        step.interval.begin,
+        step.interval.end,
+        curve: step.curve ?? sequence.curve,
+      );
+      final animation =
+          CurvedAnimation(parent: _controller, curve: interval);
+      switch (step.type) {
+        case AnimStepType.fade:
+          items.add(
+            _SequenceStepAnimation(
+              opacityAnimation: Tween<double>(
+                begin: step.beginOpacity ?? 0.0,
+                end: step.endOpacity ?? 1.0,
+              ).animate(animation),
+            ),
+          );
+          break;
+        case AnimStepType.scale:
+          items.add(
+            _SequenceStepAnimation(
+              scaleAnimation: Tween<double>(
+                begin: step.beginScale ?? 0.9,
+                end: step.endScale ?? 1.0,
+              ).animate(animation),
+            ),
+          );
+          break;
+        case AnimStepType.slide:
+          items.add(
+            _SequenceStepAnimation(
+              slideAnimation: Tween<Offset>(
+                begin: step.beginOffset ?? const Offset(0, 0.1),
+                end: step.endOffset ?? Offset.zero,
+              ).animate(animation),
+            ),
+          );
+          break;
+        case AnimStepType.rotate:
+          items.add(
+            _SequenceStepAnimation(
+              rotateAnimation: Tween<double>(
+                begin: step.beginTurns ?? 0.0,
+                end: step.endTurns ?? 1.0,
+              ).animate(animation),
+            ),
+          );
+          break;
+      }
+    }
+    return items;
+  }
+}
+
+class _SequenceStepAnimation {
+  final Animation<double>? opacityAnimation;
+  final Animation<double>? scaleAnimation;
+  final Animation<Offset>? slideAnimation;
+  final Animation<double>? rotateAnimation;
+  const _SequenceStepAnimation({
+    this.opacityAnimation,
+    this.scaleAnimation,
+    this.slideAnimation,
+    this.rotateAnimation,
+  });
 }
 
 // ==================== 点击触发动画 ====================

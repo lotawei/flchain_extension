@@ -67,6 +67,8 @@ class ChainableExample extends StatelessWidget {
             _buildHeroSection(context),
             _buildSectionTitle(context, '✨ 动画效果 - 自动播放'),
             _buildAnimationDemo(),
+            _buildSectionTitle(context, '🧩 组合序列动画'),
+            _buildSequenceAnimationDemo(),
             _buildSectionTitle(context, '🎯 动画效果 - 点击触发'),
             _buildOnTapAnimationDemo(),
             _buildSectionTitle(context, '🔥 高级视觉效果'),
@@ -637,6 +639,152 @@ class ChainableExample extends StatelessWidget {
               trigger: AnimTrigger.onTap,
             )),
       ].toColumn(crossAxisAlignment: CrossAxisAlignment.start).paddingAll(16);
+
+  Widget _buildSequenceAnimationDemo() => [
+        const Text('顺序 + 交错 + 并行示例')
+            .fontSize(12)
+            .textColor(Colors.grey.shade600)
+            .paddingOnly(left: 16, bottom: 8),
+        const Text('顺序：淡入 -> 滑入 -> 轻微缩放')
+            .fontSize(12)
+            .textColor(Colors.grey.shade700)
+            .paddingOnly(left: 16, bottom: 8),
+        const Text('顺序组合卡片')
+            .fontSize(16)
+            .bold()
+            .textColor(Colors.white)
+            .paddingAll(16)
+            .background(Colors.indigo.shade500)
+            .cornerRadius(12)
+            .animateSequence(
+              AnimSequence(
+                duration: const Duration(milliseconds: 800),
+                steps: [
+                  AnimStep.fadeIn(interval: const Interval(0.0, 0.3)),
+                  AnimStep.slide(
+                    interval: const Interval(0.1, 0.6),
+                    begin: const Offset(0, 0.6),
+                  ),
+                  AnimStep.scale(
+                    interval: const Interval(0.6, 1.0),
+                    begin: 0.98,
+                    end: 1.0,
+                  ),
+                ],
+                trigger: AnimTrigger.onTap,
+              ),
+            ),
+        12.vGap,
+        const Text('并行：同时淡入 + 缩放 + 轻微旋转')
+            .fontSize(12)
+            .textColor(Colors.grey.shade700)
+            .paddingOnly(left: 16, bottom: 8),
+        const Text('并行组合卡片')
+            .fontSize(16)
+            .bold()
+            .textColor(Colors.white)
+            .paddingAll(16)
+            .background(Colors.teal.shade500)
+            .cornerRadius(12)
+            .animateSequence(
+              AnimSequence(
+                duration: const Duration(milliseconds: 600),
+                steps: [
+                  AnimStep.fadeIn(interval: const Interval(0.0, 1.0)),
+                  AnimStep.scale(
+                    interval: const Interval(0.0, 1.0),
+                    begin: 0.9,
+                    end: 1.0,
+                  ),
+                  AnimStep.rotate(
+                    interval: const Interval(0.0, 1.0),
+                    begin: 0.0,
+                    end: 0.05,
+                  ),
+                ],
+              ),
+            ),
+        12.vGap,
+        const Text('交错：列表按索引延迟')
+            .fontSize(12)
+            .textColor(Colors.grey.shade700)
+            .paddingOnly(left: 16, bottom: 8),
+        [
+          _buildSequenceListItem('第一项', 0),
+          8.vGap,
+          _buildSequenceListItem('第二项', 1),
+          8.vGap,
+          _buildSequenceListItem('第三项', 2),
+        ].toColumn(crossAxisAlignment: CrossAxisAlignment.start).paddingAll(16),
+        const Text('点击触发：按钮微交互')
+            .fontSize(12)
+            .textColor(Colors.grey.shade700)
+            .paddingOnly(left: 16, bottom: 8),
+        const Text('点击我')
+            .fontSize(16)
+            .bold()
+            .textColor(Colors.white)
+            .paddingAll(14)
+            .background(Colors.purple.shade500)
+            .cornerRadius(10)
+            .animateSequence(
+              AnimSequence(
+                duration: const Duration(milliseconds: 500),
+                trigger: AnimTrigger.onTap,
+                steps: [
+                  AnimStep.scale(
+                    interval: const Interval(0.0, 0.6),
+                    begin: 1.0,
+                    end: 0.92,
+                  ),
+                  AnimStep.scale(
+                    interval: const Interval(0.6, 1.0),
+                    begin: 0.92,
+                    end: 1.0,
+                  ),
+                  AnimStep.fade(
+                    interval: const Interval(0.0, 0.6),
+                    begin: 1.0,
+                    end: 0.8,
+                  ),
+                  AnimStep.fade(
+                    interval: const Interval(0.6, 1.0),
+                    begin: 0.8,
+                    end: 1.0,
+                  ),
+                ],
+              ),
+            ),
+      ].toColumn(crossAxisAlignment: CrossAxisAlignment.start).paddingAll(16);
+
+  Widget _buildSequenceListItem(String title, int index) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(title).fontSize(14).textColor(Colors.grey.shade800),
+      ).animateSequence(
+        AnimSequence.stagger(
+          index: index,
+          stagger: const Duration(milliseconds: 80),
+          steps: [
+            AnimStep.fadeIn(interval: const Interval(0.0, 0.6)),
+            AnimStep.slide(
+              interval: const Interval(0.0, 0.6),
+              begin: const Offset(0, 0.15),
+            ),
+          ],
+        ),
+      );
 
   Widget _buildOnTapAnimationDemo() => [
         // 说明文字
