@@ -1,7 +1,17 @@
+import 'dart:async';
+
 import 'package:flchain_extension/flchain_extension.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:leak_tracker/leak_tracker.dart';
 
 void main() {
+  LeakTracking.start();
+  // Dispatch memory events from the Flutter engine to LeakTracking.
+  FlutterMemoryAllocations.instance.addListener(
+    (ObjectEvent event) => LeakTracking.dispatchObjectEvent(event.toMap()),
+  );
   runApp(const MyApp());
 }
 
@@ -702,6 +712,7 @@ class ChainableExample extends StatelessWidget {
                     end: 0.05,
                   ),
                 ],
+                trigger: AnimTrigger.onTap,
               ),
             ),
         12.vGap,

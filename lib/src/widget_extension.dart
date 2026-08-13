@@ -4456,5 +4456,3 @@ class _SnowFieldPainter extends CustomPainter {
   }
 }
 
-//玻璃容器效果
-class LiqContainer {}
